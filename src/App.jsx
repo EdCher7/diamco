@@ -63,7 +63,8 @@ const LANGS = {
     spec:"Spec", showing:"Showing", of:"of", narrowF:"Narrow filters for more specific results.",
     noMatch:"No diamonds match", adjustF:"Adjust your filters or",
     settingsTitle:"Settings", theme:"Theme", dark:"Dark", light:"Light", language:"Language",
-    colorTip:"D=Colorless → M=Light Yellow", clarityTip:"FL=Flawless → I2=Visible" },
+    colorTip:"D=Colorless → M=Light Yellow", clarityTip:"FL=Flawless → I2=Visible",
+    googleSignUp:"Sign up with Google", googleSignIn:"Sign in with Google", orEmail:"or with email", noAccount:"Don't have an account?", haveAccount:"Already have an account?" },
   ru: { dir:"ltr", label:"Русский",
     catalog:"Каталог", calculator:"Калькулятор", analytics:"Аналитика", profile:"Кабинет",
     signUp:"Регистрация", settings:"Настройки",
@@ -101,7 +102,8 @@ const LANGS = {
     spec:"Параметр", showing:"Показано", of:"из", narrowF:"Сузьте фильтры.",
     noMatch:"Ничего не найдено", adjustF:"Измените фильтры или",
     settingsTitle:"Настройки", theme:"Тема", dark:"Тёмная", light:"Светлая", language:"Язык",
-    colorTip:"D=Бесцветный → M=Жёлтый", clarityTip:"FL=Безупречный → I2=Видимые" },
+    colorTip:"D=Бесцветный → M=Жёлтый", clarityTip:"FL=Безупречный → I2=Видимые",
+    googleSignUp:"Зарегистрироваться через Google", googleSignIn:"Войти через Google", orEmail:"или по email", noAccount:"Нет аккаунта?", haveAccount:"Уже есть аккаунт?" },
   ar: { dir:"rtl", label:"العربية",
     catalog:"الكتالوج", calculator:"الحاسبة", analytics:"التحليلات", profile:"حسابي",
     signUp:"تسجيل مجاني", settings:"الإعدادات",
@@ -139,7 +141,8 @@ const LANGS = {
     spec:"المواصفات", showing:"عرض", of:"من", narrowF:"حدد الفلاتر.",
     noMatch:"لا نتائج", adjustF:"عدّل الفلاتر أو",
     settingsTitle:"الإعدادات", theme:"المظهر", dark:"داكن", light:"فاتح", language:"اللغة",
-    colorTip:"D=عديم اللون → M=أصفر", clarityTip:"FL=مثالي → I2=شوائب مرئية" },
+    colorTip:"D=عديم اللون → M=أصفر", clarityTip:"FL=مثالي → I2=شوائب مرئية",
+    googleSignUp:"التسجيل عبر Google", googleSignIn:"الدخول عبر Google", orEmail:"أو بالبريد", noAccount:"ليس لديك حساب؟", haveAccount:"لديك حساب بالفعل؟" },
 };
 
 const Ctx = createContext(); const useApp = () => useContext(Ctx);
@@ -253,16 +256,19 @@ const Anlt=()=>{const{T,t}=useApp();const[ss,setSs]=useState("Round");
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginTop:24}}>{[{l:t.totalListings,v:ALL_D.length,s:`${t.from} ${SRCS.length} ${t.sources}`},{l:t.avgPriceCt,v:`$${Math.round(ALL_D.reduce((s,d)=>s+d.pricePerCt,0)/ALL_D.length).toLocaleString()}`,s:t.allShapes},{l:t.avgDiscount,v:`${(ALL_D.reduce((s,d)=>s+d.discount,0)/ALL_D.length).toFixed(1)}%`,s:t.offRap},{l:t.activeDealers,v:new Set(ALL_D.map(d=>d.dealer)).size,s:`${t.inCities} ${new Set(ALL_D.map(d=>d.city)).size} ${t.cities}`}].map(s=><div key={s.l} style={{background:T.bgCard,borderRadius:14,padding:18,textAlign:"center",border:`1px solid ${T.border}`}}><div style={{fontSize:28,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{s.v}</div><div style={{fontSize:12,fontWeight:600,color:T.ice,marginTop:4}}>{s.l}</div><div style={{fontSize:10,color:T.textMuted,marginTop:2}}>{s.s}</div></div>)}</div></div>;};
 
 // ─── Auth ───────────────────────────────────────────────────────────────
-const Auth=({onClose,onAuth})=>{const{T,t}=useApp();const[mode,setMode]=useState("login"),[em,setEm]=useState(""),[pw,setPw]=useState(""),[nm,setNm]=useState(""),[co,setCo]=useState(""),[rl,setRl]=useState("buyer");
+const Auth=({onClose,onAuth,initMode="login"})=>{const{T,t}=useApp();const[mode,setMode]=useState(initMode),[em,setEm]=useState(""),[pw,setPw]=useState(""),[nm,setNm]=useState(""),[co,setCo]=useState(""),[rl,setRl]=useState("buyer");
   const go=()=>{if(!em||!pw)return;onAuth({email:em,name:nm||em.split("@")[0],company:co,role:rl,savedSearches:[],alerts:[],favorites:[]});onClose();};
+  const goGoogle=()=>{onAuth({email:"user@gmail.com",name:"Google User",company:"",role:"buyer",savedSearches:[],alerts:[],favorites:[],authProvider:"google"});onClose();};
   const inp={width:"100%",padding:"12px 14px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bgInput,color:T.text,fontSize:14,fontFamily:"'Outfit',sans-serif",boxSizing:"border-box",marginBottom:12};
+  const GoogleBtn=({label})=><button onClick={goGoogle} style={{width:"100%",padding:"12px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bgInput,color:T.text,fontSize:14,fontWeight:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10,fontFamily:"'Outfit',sans-serif",marginBottom:16,transition:"all .2s"}} onMouseEnter={e=>e.target.style.borderColor=T.ice} onMouseLeave={e=>e.target.style.borderColor=T.border}><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>{label}</button>;
+  const Divider=()=><div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}><div style={{flex:1,height:1,background:T.border}}/><span style={{fontSize:12,color:T.textMuted}}>{t.orEmail}</span><div style={{flex:1,height:1,background:T.border}}/></div>;
   return<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",backdropFilter:"blur(12px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1100,padding:16}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:T.bgModal,borderRadius:24,padding:36,maxWidth:420,width:"100%",border:`1px solid ${T.border}`}}>
     <div style={{textAlign:"center",marginBottom:24}}><div style={{display:"inline-flex",alignItems:"center",gap:8,marginBottom:8}}><svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={T.ice} strokeWidth="1.3"><path d="M2.7 10.3l9.3 11.7 9.3-11.7-4.3-8.3h-10z"/><path d="M2.7 10.3h18.6"/></svg><span style={{fontSize:26,fontWeight:700,fontFamily:"'Playfair Display',serif",color:T.text}}>DIAMCO</span></div><p style={{fontSize:13,color:T.textSecondary}}>{mode==="login"?t.welcomeBack:t.joinMP}</p></div>
-    <div style={{display:"flex",marginBottom:20,borderRadius:10,background:T.accentGlow,padding:3}}>{["login","register"].map(m=><button key={m} onClick={()=>setMode(m)} style={{flex:1,padding:"8px 0",borderRadius:8,border:"none",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:"'Outfit',sans-serif",background:mode===m?T.chipActive:"transparent",color:mode===m?T.text:T.textDim}}>{m==="login"?t.signIn:t.register}</button>)}</div>
+    <GoogleBtn label={mode==="login"?t.googleSignIn:t.googleSignUp}/><Divider/>
     {mode==="register"&&<><input placeholder={t.fullName} value={nm} onChange={e=>setNm(e.target.value)} style={inp}/><input placeholder={t.company} value={co} onChange={e=>setCo(e.target.value)} style={inp}/><div style={{display:"flex",gap:8,marginBottom:12}}>{[["buyer",t.buyer],["seller",t.seller],["both",t.both]].map(([v,l])=><button key={v} onClick={()=>setRl(v)} style={{flex:1,padding:"10px",borderRadius:10,border:`1px solid ${rl===v?T.ice:T.border}`,background:rl===v?T.chipActive:"transparent",color:rl===v?T.text:T.textMuted,fontSize:12,cursor:"pointer",fontWeight:rl===v?600:400}}>{l}</button>)}</div></>}
     <input placeholder={t.email} type="email" value={em} onChange={e=>setEm(e.target.value)} style={inp}/><input placeholder={t.password} type="password" value={pw} onChange={e=>setPw(e.target.value)} style={inp}/>
     <Btn primary onClick={go} style={{width:"100%",justifyContent:"center",padding:"14px",marginTop:4}}>{mode==="login"?t.signIn:t.register}</Btn>
-    <p style={{textAlign:"center",fontSize:12,color:T.textMuted,marginTop:16}}>{mode==="login"?t.freeForever:t.byReg}</p></div></div>;};
+    <p style={{textAlign:"center",fontSize:12,color:T.textMuted,marginTop:16}}>{mode==="login"?<>{t.noAccount} <button onClick={()=>setMode("register")} style={{background:"none",border:"none",color:T.ice,cursor:"pointer",textDecoration:"underline",fontSize:12,fontFamily:"'Outfit',sans-serif"}}>{t.register}</button></>:<>{t.haveAccount} <button onClick={()=>setMode("login")} style={{background:"none",border:"none",color:T.ice,cursor:"pointer",textDecoration:"underline",fontSize:12,fontFamily:"'Outfit',sans-serif"}}>{t.signIn}</button></>}</p></div></div>;};
 
 // ─── Profile ────────────────────────────────────────────────────────────
 const Prof=({user:u,setUser,onGo})=>{const{T,t}=useApp();const favD=ALL_D.filter(d=>u.favorites?.includes(d.id));
@@ -296,7 +302,7 @@ const Sett=({onClose,tn,setTn,ln,setLn})=>{const{T,t}=useApp();
 export default function DIAMCO(){
   const[tn,setTn]=useState("dark"),[ln,setLn]=useState("en");
   const T=THEMES[tn],t=LANGS[ln],isRTL=t.dir==="rtl";
-  const[pg,setPg]=useState("search"),[usr,setUsr]=useState(null),[showAuth,setShowAuth]=useState(false),[showSett,setShowSett]=useState(false),
+  const[pg,setPg]=useState("search"),[usr,setUsr]=useState(null),[showAuth,setShowAuth]=useState(false),[authMode,setAuthMode]=useState("login"),[showSett,setShowSett]=useState(false),
     [favs,setFavs]=useState(new Set()),[cmpList,setCmpList]=useState([]),[showCmp,setShowCmp]=useState(false),
     [selD,setSelD]=useState(null),[sTxt,setSTxt]=useState(""),[mobMenu,setMobMenu]=useState(false),[mobFilt,setMobFilt]=useState(false);
   const[fSh,setFSh]=useState([]),[fCo,setFCo]=useState([]),[fCl,setFCl]=useState([]),[fCu,setFCu]=useState([]),
@@ -336,7 +342,7 @@ export default function DIAMCO(){
         {cmpList.length>0&&<button className="dsk" onClick={()=>setShowCmp(!showCmp)} style={{display:"flex",alignItems:"center",gap:5,padding:"7px 14px",borderRadius:10,background:"rgba(52,152,219,.1)",border:"1px solid rgba(52,152,219,.2)",color:"#3498db",cursor:"pointer",fontSize:12,fontWeight:600}}>{I.cmp} {cmpList.length}</button>}
         <button onClick={()=>setShowSett(true)} style={{background:T.accentGlow,border:`1px solid ${T.border}`,color:T.ice,width:36,height:36,borderRadius:10,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>{I.gear}</button>
         {usr?<button onClick={()=>setPg("profile")} style={{display:"flex",alignItems:"center",gap:6,padding:"7px 14px",borderRadius:10,background:pg==="profile"?T.chipActive:"transparent",border:`1px solid ${T.border}`,color:T.text,cursor:"pointer",fontSize:13,fontWeight:500}}><div style={{width:24,height:24,borderRadius:"50%",background:T.gradient,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff"}}>{(usr.name||"U")[0].toUpperCase()}</div><span className="dsk">{usr.name}</span></button>
-        :<Btn primary small onClick={()=>setShowAuth(true)}>{t.signUp}</Btn>}
+        :<><Btn small onClick={()=>{setAuthMode("login");setShowAuth(true);}}>{t.signIn}</Btn><Btn primary small onClick={()=>{setAuthMode("register");setShowAuth(true);}}>{t.signUp}</Btn></>}
       </div></header>
 
     {mobMenu&&<div className="mob" style={{position:"fixed",top:52,inset:0,background:T.name==="dark"?"rgba(6,6,16,.95)":"rgba(244,247,250,.95)",backdropFilter:"blur(20px)",zIndex:790,padding:24,paddingTop:0}}>
@@ -371,7 +377,13 @@ export default function DIAMCO(){
         <tbody>{["shape","carat","color","clarity","cut","price","pricePerCt","discount","source"].map(f=><tr key={f} style={{borderTop:`1px solid ${T.border}`}}><td style={{padding:"6px 10px",color:T.textSecondary}}>{f}</td>{cmpList.map(d=><td key={d.id} style={{textAlign:"center",padding:"6px 10px",color:T.text}}>{f==="price"||f==="pricePerCt"?`$${d[f].toLocaleString()}`:f==="discount"?d[f]+"%":d[f]}</td>)}</tr>)}</tbody></table></div>}
 
     {selD&&<Detail d={selD} onClose={()=>setSelD(null)} onFav={togFav} isFav={favs.has(selD?.id)}/>}
-    {showAuth&&<Auth onClose={()=>setShowAuth(false)} onAuth={u=>{setUsr(u);setShowAuth(false);}}/>}
+    {showAuth&&<Auth onClose={()=>setShowAuth(false)} onAuth={u=>{setUsr(u);setShowAuth(false);}} initMode={authMode}/>}
     {showSett&&<Sett onClose={()=>setShowSett(false)} tn={tn} setTn={setTn} ln={ln} setLn={setLn}/>}
+
+    {/* DIAMCO Watermark — always visible for screenshots */}
+    <div style={{position:"fixed",bottom:12,[isRTL?"left":"right"]:16,display:"flex",alignItems:"center",gap:5,opacity:.35,pointerEvents:"none",zIndex:700}}>
+      <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={T.ice} strokeWidth="1.5"><path d="M2.7 10.3l9.3 11.7 9.3-11.7-4.3-8.3h-10z"/><path d="M2.7 10.3h18.6"/></svg>
+      <span style={{fontSize:13,fontWeight:700,fontFamily:"'Playfair Display',serif",color:T.ice,letterSpacing:".06em"}}>DIAMCO</span>
+    </div>
   </div></Ctx.Provider>;
 }
