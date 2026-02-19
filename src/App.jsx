@@ -212,7 +212,19 @@ const Card=({d,onFav,isFav,onCmp,isCmp,onSel})=>{const[h,setH]=useState(false);c
     <div style={{display:"flex",gap:4}}><button onClick={e=>{e.stopPropagation();onCmp(d);}} style={{background:isCmp?"rgba(52,152,219,0.15)":"transparent",border:"none",cursor:"pointer",color:isCmp?"#3498db":T.textDim,padding:4,borderRadius:6,display:"flex"}}>{I.cmp}</button><button onClick={e=>{e.stopPropagation();onFav(d.id);}} style={{background:"none",border:"none",cursor:"pointer",color:T.textMuted,padding:4,display:"flex"}}>{I.heart(isFav)}</button></div>
   </div>
   <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-    <div style={{width:52,height:52,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",background:`linear-gradient(135deg,${T.accentGlow},transparent)`,border:`1px solid ${T.border}`,color:T.ice}}><svg width={26} height={26} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M2.7 10.3l9.3 11.7 9.3-11.7-4.3-8.3h-10z"/><path d="M2.7 10.3h18.6"/></svg></div>
+    <div style={{width:52,height:52,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",background:`linear-gradient(135deg,${T.accentGlow},transparent)`,border:`1px solid ${T.border}`,color:T.ice}}><svg width={26} height={26} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3">{
+      d.shape==="Round"?<circle cx="12" cy="12" r="9"/>
+      :d.shape==="Princess"?<rect x="3" y="3" width="18" height="18" rx="1"/>
+      :d.shape==="Cushion"?<rect x="3" y="3" width="18" height="18" rx="5"/>
+      :d.shape==="Oval"?<ellipse cx="12" cy="12" rx="7" ry="10"/>
+      :d.shape==="Pear"?<path d="M12 2C8 2 4 7 4 13c0 4 3.5 9 8 9s8-5 8-9c0-6-4-11-8-11z"/>
+      :d.shape==="Emerald"?<><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="4" y1="6" x2="20" y2="6" opacity=".4"/><line x1="4" y1="18" x2="20" y2="18" opacity=".4"/></>
+      :d.shape==="Marquise"?<ellipse cx="12" cy="12" rx="5" ry="11"/>
+      :d.shape==="Radiant"?<><rect x="4" y="2" width="16" height="20" rx="1"/><line x1="4" y1="6" x2="20" y2="6" opacity=".4"/></>
+      :d.shape==="Asscher"?<><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6" y="6" width="12" height="12" rx="1" opacity=".4"/></>
+      :d.shape==="Heart"?<path d="M12 21C12 21 3 14 3 8.5C3 5.4 5.4 3 8.5 3c1.7 0 3.2.8 3.5 2 .3-1.2 1.8-2 3.5-2C18.6 3 21 5.4 21 8.5 21 14 12 21 12 21z"/>
+      :<path d="M2.7 10.3l9.3 11.7 9.3-11.7-4.3-8.3h-10z"/>
+    }</svg></div>
     <div style={{flex:1}}><div style={{fontSize:16,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{d.carat} ct {d.shape}</div><div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{d.color} · {d.clarity} · {d.cut}</div></div>
   </div>
   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}}>
@@ -305,6 +317,7 @@ const Sett=({onClose,tn,setTn,ln,setLn})=>{const{T,t}=useApp();
 export default function DIAMCO(){
   const[tn,setTn]=useState("dark"),[ln,setLn]=useState("en");
   const T=THEMES[tn],t=LANGS[ln],isRTL=t.dir==="rtl";
+  const[splash,setSplash]=useState(true),[welcome,setWelcome]=useState(false),[splashFade,setSplashFade]=useState(false),[welcomeFade,setWelcomeFade]=useState(false);
   const[pg,setPg]=useState("search"),[usr,setUsr]=useState(null),[showAuth,setShowAuth]=useState(false),[authMode,setAuthMode]=useState("login"),[showSett,setShowSett]=useState(false),
     [favs,setFavs]=useState(new Set()),[cmpList,setCmpList]=useState([]),[showCmp,setShowCmp]=useState(false),
     [selD,setSelD]=useState(null),[sTxt,setSTxt]=useState(""),[mobMenu,setMobMenu]=useState(false),[mobFilt,setMobFilt]=useState(false);
@@ -331,6 +344,47 @@ export default function DIAMCO(){
     <Chips label={t.cut} opts={CUTS} sel={fCu} onChange={setFCu}/><Chips label={t.lab} opts={LABS} sel={fLb} onChange={setFLb}/>
     <Range label={t.price} min={0} max={150000} step={500} value={fPr} onChange={setFPr} fmt={v=>`$${(v/1000).toFixed(0)}k`}/>
     <Chips label={t.source} opts={SRCS.map(s=>s.name)} sel={fSr} onChange={setFSr}/></>;
+
+  const enterWelcome=()=>{setSplashFade(true);setTimeout(()=>{setSplash(false);setWelcome(true);},500);};
+  const enterAsGuest=()=>{setWelcomeFade(true);setTimeout(()=>setWelcome(false),500);};
+  const enterWithAuth=(mode)=>{setAuthMode(mode);setShowAuth(true);setWelcomeFade(true);setTimeout(()=>setWelcome(false),500);};
+
+  // ─── Splash Screen ───
+  if(splash)return<div onClick={enterWelcome} style={{position:"fixed",inset:0,background:"#fff",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",cursor:"pointer",zIndex:9999,opacity:splashFade?0:1,transition:"opacity .5s ease-out",fontFamily:"'Outfit',sans-serif"}}>
+    <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}`}</style>
+    <img src="/logo.png" alt="DIAMCO" style={{width:280,maxWidth:"60vw",animation:"pulse 3s ease-in-out infinite",marginBottom:24}}/>
+    <div style={{fontSize:32,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#4a7a96",letterSpacing:".06em",marginBottom:8,animation:"fadeUp .8s ease-out .3s both"}}>DIAMCO</div>
+    <div style={{fontSize:14,color:"#8ba8bc",fontWeight:400,marginBottom:40,animation:"fadeUp .8s ease-out .5s both"}}>Diamond Market Platform</div>
+    <div style={{fontSize:12,color:"#b0c4d0",animation:"fadeUp .8s ease-out .8s both",display:"flex",alignItems:"center",gap:6}}>
+      <span style={{display:"inline-block",width:8,height:8,borderRadius:"50%",background:"#7eb8d8",animation:"pulse 1.5s ease-in-out infinite"}}/>
+      {ln==="ru"?"Нажмите чтобы продолжить":ln==="ar"?"اضغط للمتابعة":"Tap to continue"}
+    </div>
+  </div>;
+
+  // ─── Welcome Screen (Auth choices) ───
+  if(welcome)return<div style={{position:"fixed",inset:0,background:"#fff",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:9998,opacity:welcomeFade?0:1,transition:"opacity .5s ease-out",fontFamily:"'Outfit',sans-serif",padding:24}}>
+    <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}`}</style>
+    <img src="/logo.png" alt="DIAMCO" style={{width:120,maxWidth:"30vw",marginBottom:16,animation:"fadeUp .6s ease-out both"}}/>
+    <div style={{fontSize:26,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#2c5f7a",letterSpacing:".04em",marginBottom:6,animation:"fadeUp .6s ease-out .1s both"}}>DIAMCO</div>
+    <div style={{fontSize:13,color:"#8ba8bc",marginBottom:40,animation:"fadeUp .6s ease-out .2s both"}}>{ln==="ru"?"Алмазная торговая платформа":ln==="ar"?"منصة تجارة الألماس":"Diamond Market Platform"}</div>
+    <div style={{width:"100%",maxWidth:360,display:"flex",flexDirection:"column",gap:12,animation:"fadeUp .6s ease-out .3s both"}}>
+      <button onClick={()=>{enterAsGuest();setTimeout(()=>{setAuthMode("register");setShowAuth(true);},600);}} style={{width:"100%",padding:"14px 20px",borderRadius:12,border:"1px solid #e0e5ea",background:"#fff",color:"#333",fontSize:14,fontWeight:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10,fontFamily:"'Outfit',sans-serif",transition:"all .2s",boxShadow:"0 1px 3px rgba(0,0,0,.08)"}} onMouseEnter={e=>{e.target.style.borderColor="#7eb8d8";e.target.style.boxShadow="0 2px 8px rgba(126,184,216,.2)";}} onMouseLeave={e=>{e.target.style.borderColor="#e0e5ea";e.target.style.boxShadow="0 1px 3px rgba(0,0,0,.08)";}}>
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        {ln==="ru"?"Продолжить через Google":ln==="ar"?"المتابعة عبر Google":"Continue with Google"}
+      </button>
+      <button onClick={()=>enterWithAuth("register")} style={{width:"100%",padding:"14px 20px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#4a8baa,#7eb8d8)",color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"'Outfit',sans-serif",transition:"all .2s",boxShadow:"0 2px 8px rgba(126,184,216,.3)"}} onMouseEnter={e=>e.target.style.transform="translateY(-1px)"} onMouseLeave={e=>e.target.style.transform="translateY(0)"}>
+        {ln==="ru"?"Зарегистрироваться":ln==="ar"?"إنشاء حساب":"Create Account"}
+      </button>
+      <button onClick={()=>enterWithAuth("login")} style={{width:"100%",padding:"14px 20px",borderRadius:12,border:"1px solid #7eb8d8",background:"transparent",color:"#4a8baa",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"'Outfit',sans-serif",transition:"all .2s"}} onMouseEnter={e=>{e.target.style.background="rgba(126,184,216,.08)";}} onMouseLeave={e=>{e.target.style.background="transparent";}}>
+        {ln==="ru"?"Войти":ln==="ar"?"تسجيل الدخول":"Sign In"}
+      </button>
+      <div style={{display:"flex",alignItems:"center",gap:12,margin:"4px 0"}}><div style={{flex:1,height:1,background:"#e0e5ea"}}/><span style={{fontSize:11,color:"#b0bec5"}}>{ln==="ru"?"или":ln==="ar"?"أو":"or"}</span><div style={{flex:1,height:1,background:"#e0e5ea"}}/></div>
+      <button onClick={enterAsGuest} style={{width:"100%",padding:"12px 20px",borderRadius:12,border:"none",background:"transparent",color:"#90a4ae",fontSize:13,fontWeight:400,cursor:"pointer",fontFamily:"'Outfit',sans-serif",transition:"all .2s"}} onMouseEnter={e=>e.target.style.color="#4a8baa"} onMouseLeave={e=>e.target.style.color="#90a4ae"}>
+        {ln==="ru"?"Войти как гость →":ln==="ar"?"الدخول كضيف ←":"Continue as guest →"}
+      </button>
+    </div>
+    <div style={{position:"absolute",bottom:24,fontSize:11,color:"#c8d5dd",animation:"fadeUp .6s ease-out .5s both"}}>© 2025 DIAMCO</div>
+  </div>;
 
   return<Ctx.Provider value={{T,t,isRTL}}>
   <div dir={isRTL?"rtl":"ltr"} style={{minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"'Outfit',sans-serif",transition:"background .3s,color .3s"}}>
