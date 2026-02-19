@@ -177,7 +177,7 @@ const PH=MONTHS.map((m,i)=>({month:m,r1:Math.round(6200-i*25+Math.sin(i)*80+(i>8
 // ─── Icons ──────────────────────────────────────────────────────────────
 const Ic=({d,sz=18,f="none",s="currentColor",w=1.8})=><svg width={sz} height={sz} viewBox="0 0 24 24" fill={f} stroke={s} strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">{d}</svg>;
 const I={
-  diamond:<Ic d={<><path d="M2.7 10.3l9.3 11.7 9.3-11.7-4.3-8.3h-10z"/><path d="M2.7 10.3h18.6"/><path d="M12 22l3-11.7M12 22l-3-11.7"/><path d="M7.7 2l1.3 8.3M16.3 2l-1.3 8.3"/></>} sz={24}/>,
+  diamond:<Ic d={<><path d="M2.7 10.3l9.3 11.7 9.3-11.7-4.3-8.3h-10z"/><path d="M2.7 10.3h18.6"/><path d="M12 22l3-11.7M12 22l-3-11.7"/><path d="M7.7 2l1.3 8.3M16.3 2l-1.3 8.3"/></>} sz={20}/>,
   search:<Ic d={<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>}/>,
   calc:<Ic d={<><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h8M8 14h4M8 18h4"/></>}/>,
   chart:<Ic d={<><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></>}/>,
@@ -212,18 +212,18 @@ const Card=({d,onFav,isFav,onCmp,isCmp,onSel})=>{const[h,setH]=useState(false);c
     <div style={{display:"flex",gap:4}}><button onClick={e=>{e.stopPropagation();onCmp(d);}} style={{background:isCmp?"rgba(52,152,219,0.15)":"transparent",border:"none",cursor:"pointer",color:isCmp?"#3498db":T.textDim,padding:4,borderRadius:6,display:"flex"}}>{I.cmp}</button><button onClick={e=>{e.stopPropagation();onFav(d.id);}} style={{background:"none",border:"none",cursor:"pointer",color:T.textMuted,padding:4,display:"flex"}}>{I.heart(isFav)}</button></div>
   </div>
   <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-    <div style={{width:52,height:52,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",background:`linear-gradient(135deg,${T.accentGlow},transparent)`,border:`1px solid ${T.border}`,color:T.ice}}><svg width={26} height={26} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3">{
-      d.shape==="Round"?<circle cx="12" cy="12" r="9"/>
-      :d.shape==="Princess"?<rect x="3" y="3" width="18" height="18" rx="1"/>
-      :d.shape==="Cushion"?<rect x="3" y="3" width="18" height="18" rx="5"/>
-      :d.shape==="Oval"?<ellipse cx="12" cy="12" rx="7" ry="10"/>
-      :d.shape==="Pear"?<path d="M12 2C8 2 4 7 4 13c0 4 3.5 9 8 9s8-5 8-9c0-6-4-11-8-11z"/>
-      :d.shape==="Emerald"?<><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="4" y1="6" x2="20" y2="6" opacity=".4"/><line x1="4" y1="18" x2="20" y2="18" opacity=".4"/></>
-      :d.shape==="Marquise"?<ellipse cx="12" cy="12" rx="5" ry="11"/>
-      :d.shape==="Radiant"?<><rect x="4" y="2" width="16" height="20" rx="1"/><line x1="4" y1="6" x2="20" y2="6" opacity=".4"/></>
-      :d.shape==="Asscher"?<><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="6" y="6" width="12" height="12" rx="1" opacity=".4"/></>
-      :d.shape==="Heart"?<path d="M12 21C12 21 3 14 3 8.5C3 5.4 5.4 3 8.5 3c1.7 0 3.2.8 3.5 2 .3-1.2 1.8-2 3.5-2C18.6 3 21 5.4 21 8.5 21 14 12 21 12 21z"/>
-      :<path d="M2.7 10.3l9.3 11.7 9.3-11.7-4.3-8.3h-10z"/>
+    <div style={{width:52,height:52,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",background:`linear-gradient(135deg,${T.accentGlow},transparent)`,border:`1px solid ${T.border}`,color:T.ice}}><svg width={30} height={30} viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth=".9" strokeLinejoin="round">{
+      d.shape==="Round"?<><circle cx="24" cy="24" r="20"/><polygon points="24,4 44,24 24,44 4,24"/><line x1="24" y1="4" x2="24" y2="44" opacity=".5"/><line x1="4" y1="24" x2="44" y2="24" opacity=".5"/><polygon points="24,10 38,24 24,38 10,24" opacity=".4"/><line x1="10" y1="10" x2="38" y2="38" opacity=".3"/><line x1="38" y1="10" x2="10" y2="38" opacity=".3"/></>
+      :d.shape==="Princess"?<><rect x="4" y="4" width="40" height="40" rx="1"/><line x1="4" y1="4" x2="44" y2="44"/><line x1="44" y1="4" x2="4" y2="44"/><polygon points="24,4 44,24 24,44 4,24" opacity=".5"/><line x1="24" y1="4" x2="24" y2="44" opacity=".3"/><line x1="4" y1="24" x2="44" y2="24" opacity=".3"/></>
+      :d.shape==="Cushion"?<><rect x="4" y="4" width="40" height="40" rx="10"/><line x1="4" y1="24" x2="44" y2="24" opacity=".4"/><line x1="24" y1="4" x2="24" y2="44" opacity=".4"/><line x1="10" y1="7" x2="38" y2="41" opacity=".3"/><line x1="38" y1="7" x2="10" y2="41" opacity=".3"/><polygon points="24,8 40,24 24,40 8,24" opacity=".35"/></>
+      :d.shape==="Oval"?<><ellipse cx="24" cy="24" rx="14" ry="21"/><line x1="24" y1="3" x2="24" y2="45" opacity=".5"/><line x1="10" y1="24" x2="38" y2="24" opacity=".4"/><line x1="13" y1="8" x2="35" y2="40" opacity=".3"/><line x1="35" y1="8" x2="13" y2="40" opacity=".3"/><ellipse cx="24" cy="24" rx="7" ry="12" opacity=".35"/></>
+      :d.shape==="Pear"?<><path d="M24 3C18 3 10 12 10 24c0 8 6 21 14 21s14-13 14-21C38 12 30 3 24 3z"/><line x1="24" y1="3" x2="24" y2="45" opacity=".5"/><line x1="10" y1="26" x2="38" y2="26" opacity=".4"/><path d="M24 3L10 26" opacity=".3"/><path d="M24 3L38 26" opacity=".3"/><path d="M14 14L34 36" opacity=".25"/><path d="M34 14L14 36" opacity=".25"/><ellipse cx="24" cy="27" rx="7" ry="9" opacity=".3"/></>
+      :d.shape==="Emerald"?<><rect x="6" y="3" width="36" height="42" rx="3"/><rect x="10" y="7" width="28" height="34" rx="2" opacity=".5"/><rect x="14" y="11" width="20" height="26" rx="1" opacity=".35"/><line x1="6" y1="3" x2="10" y2="7" opacity=".4"/><line x1="42" y1="3" x2="38" y2="7" opacity=".4"/><line x1="6" y1="45" x2="10" y2="41" opacity=".4"/><line x1="42" y1="45" x2="38" y2="41" opacity=".4"/><line x1="24" y1="3" x2="24" y2="45" opacity=".25"/></>
+      :d.shape==="Marquise"?<><ellipse cx="24" cy="24" rx="11" ry="22"/><line x1="24" y1="2" x2="24" y2="46" opacity=".5"/><line x1="13" y1="24" x2="35" y2="24" opacity=".4"/><path d="M24 2L13 24L24 46" opacity=".3"/><path d="M24 2L35 24L24 46" opacity=".3"/><line x1="15" y1="10" x2="33" y2="38" opacity=".25"/><line x1="33" y1="10" x2="15" y2="38" opacity=".25"/><ellipse cx="24" cy="24" rx="5" ry="12" opacity=".3"/></>
+      :d.shape==="Radiant"?<><rect x="5" y="3" width="38" height="42" rx="2"/><line x1="5" y1="3" x2="43" y2="45"/><line x1="43" y1="3" x2="5" y2="45"/><polygon points="24,3 43,24 24,45 5,24" opacity=".4"/><line x1="24" y1="3" x2="24" y2="45" opacity=".3"/><line x1="5" y1="24" x2="43" y2="24" opacity=".3"/></>
+      :d.shape==="Asscher"?<><rect x="4" y="4" width="40" height="40" rx="2"/><rect x="10" y="10" width="28" height="28" rx="1" opacity=".5"/><rect x="16" y="16" width="16" height="16" rx="1" opacity=".35"/><line x1="4" y1="4" x2="10" y2="10" opacity=".4"/><line x1="44" y1="4" x2="38" y2="10" opacity=".4"/><line x1="4" y1="44" x2="10" y2="38" opacity=".4"/><line x1="44" y1="44" x2="38" y2="38" opacity=".4"/><line x1="24" y1="4" x2="24" y2="16" opacity=".3"/><line x1="24" y1="32" x2="24" y2="44" opacity=".3"/></>
+      :d.shape==="Heart"?<><path d="M24 44C24 44 4 30 4 16C4 9 9 4 15 4c3.5 0 6.5 1.8 9 5 2.5-3.2 5.5-5 9-5 6 0 11 5 11 12C44 30 24 44 24 44z"/><line x1="24" y1="9" x2="24" y2="44" opacity=".5"/><path d="M24 44L8 20" opacity=".3"/><path d="M24 44L40 20" opacity=".3"/><path d="M4 18h16" opacity=".3"/><path d="M28 18h16" opacity=".3"/><path d="M10 10L20 22" opacity=".25"/><path d="M38 10L28 22" opacity=".25"/></>
+      :<><path d="M4 18l20 26 20-26L36 4H12z"/><path d="M4 18h40"/><path d="M24 44L16 18M24 44L32 18"/><path d="M12 4l4 14M36 4l-4 14"/><path d="M24 4v14" opacity=".4"/></>
     }</svg></div>
     <div style={{flex:1}}><div style={{fontSize:16,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{d.carat} ct {d.shape}</div><div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{d.color} · {d.clarity} · {d.cut}</div></div>
   </div>
@@ -278,7 +278,7 @@ const Auth=({onClose,onAuth,initMode="login"})=>{const{T,t}=useApp();const[mode,
   const GoogleBtn=({label})=><button onClick={goGoogle} style={{width:"100%",padding:"12px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bgInput,color:T.text,fontSize:14,fontWeight:500,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10,fontFamily:"'Outfit',sans-serif",marginBottom:16,transition:"all .2s"}} onMouseEnter={e=>e.target.style.borderColor=T.ice} onMouseLeave={e=>e.target.style.borderColor=T.border}><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>{label}</button>;
   const Divider=()=><div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}><div style={{flex:1,height:1,background:T.border}}/><span style={{fontSize:12,color:T.textMuted}}>{t.orEmail}</span><div style={{flex:1,height:1,background:T.border}}/></div>;
   return<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",backdropFilter:"blur(12px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1100,padding:16}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:T.bgModal,borderRadius:24,padding:36,maxWidth:420,width:"100%",border:`1px solid ${T.border}`}}>
-    <div style={{textAlign:"center",marginBottom:24}}><div style={{display:"inline-flex",alignItems:"center",gap:8,marginBottom:8}}><svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke={T.ice} strokeWidth="1.3"><path d="M2.7 10.3l9.3 11.7 9.3-11.7-4.3-8.3h-10z"/><path d="M2.7 10.3h18.6"/></svg><span style={{fontSize:26,fontWeight:700,fontFamily:"'Playfair Display',serif",color:T.text}}>DIAMCO</span></div><p style={{fontSize:13,color:T.textSecondary}}>{mode==="login"?t.welcomeBack:t.joinMP}</p></div>
+    <div style={{textAlign:"center",marginBottom:24}}><div style={{display:"inline-flex",alignItems:"center",gap:8,marginBottom:8}}><svg width={32} height={27} viewBox="0 0 100 75" fill="none"><defs><linearGradient id="adg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={T.iceLight||T.ice}/><stop offset="100%" stopColor={T.ice}/></linearGradient></defs><g stroke="url(#adg)" strokeWidth="2.5" strokeLinejoin="round"><path d="M50 72L5 30 18 7h64l13 23L50 72z"/><path d="M5 30h90"/><path d="M50 72L37 30M50 72L63 30"/><path d="M18 7L37 30M82 7L63 30"/><path d="M50 7v23"/><path d="M18 7l19 23h26l19-23" opacity=".35"/></g></svg><span style={{fontSize:26,fontWeight:700,fontFamily:"'Playfair Display',serif",color:T.text}}>DIAMCO</span></div><p style={{fontSize:13,color:T.textSecondary}}>{mode==="login"?t.welcomeBack:t.joinMP}</p></div>
     <GoogleBtn label={mode==="login"?t.googleSignIn:t.googleSignUp}/><Divider/>
     {mode==="register"&&<><input placeholder={t.fullName} value={nm} onChange={e=>setNm(e.target.value)} style={inp}/><input placeholder={t.company} value={co} onChange={e=>setCo(e.target.value)} style={inp}/><div style={{display:"flex",gap:8,marginBottom:12}}>{[["buyer",t.buyer],["seller",t.seller],["both",t.both]].map(([v,l])=><button key={v} onClick={()=>setRl(v)} style={{flex:1,padding:"10px",borderRadius:10,border:`1px solid ${rl===v?T.ice:T.border}`,background:rl===v?T.chipActive:"transparent",color:rl===v?T.text:T.textMuted,fontSize:12,cursor:"pointer",fontWeight:rl===v?600:400}}>{l}</button>)}</div></>}
     <input placeholder={t.email} type="email" value={em} onChange={e=>setEm(e.target.value)} style={inp}/><input placeholder={t.password} type="password" value={pw} onChange={e=>setPw(e.target.value)} style={inp}/>
@@ -352,13 +352,7 @@ export default function DIAMCO(){
   // ─── Splash Screen ───
   if(splash)return<div onClick={enterWelcome} style={{position:"fixed",inset:0,background:"#fff",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",cursor:"pointer",zIndex:9999,opacity:splashFade?0:1,transition:"opacity .5s ease-out",fontFamily:"'Outfit',sans-serif"}}>
     <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}`}</style>
-    <img src="/logo.png" alt="DIAMCO" style={{width:280,maxWidth:"60vw",animation:"pulse 3s ease-in-out infinite",marginBottom:24}}/>
-    <div style={{fontSize:32,fontWeight:700,fontFamily:"'Playfair Display',serif",color:"#4a7a96",letterSpacing:".06em",marginBottom:8,animation:"fadeUp .8s ease-out .3s both"}}>DIAMCO</div>
-    <div style={{fontSize:14,color:"#8ba8bc",fontWeight:400,marginBottom:40,animation:"fadeUp .8s ease-out .5s both"}}>Diamond Market Platform</div>
-    <div style={{fontSize:12,color:"#b0c4d0",animation:"fadeUp .8s ease-out .8s both",display:"flex",alignItems:"center",gap:6}}>
-      <span style={{display:"inline-block",width:8,height:8,borderRadius:"50%",background:"#7eb8d8",animation:"pulse 1.5s ease-in-out infinite"}}/>
-      {ln==="ru"?"Нажмите чтобы продолжить":ln==="ar"?"اضغط للمتابعة":"Tap to continue"}
-    </div>
+    <img src="/logo.png" alt="DIAMCO" style={{width:280,maxWidth:"60vw",animation:"pulse 3s ease-in-out infinite"}}/>
   </div>;
 
   // ─── Welcome Screen (Auth choices) ───
@@ -392,7 +386,7 @@ export default function DIAMCO(){
 
     <header style={{padding:"12px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:`1px solid ${T.border}`,background:T.headerBg,backdropFilter:"blur(20px)",position:"sticky",top:0,zIndex:800}}>
       <div style={{display:"flex",alignItems:"center",gap:8}}><button className="mob" onClick={()=>setMobMenu(!mobMenu)} style={{background:"none",border:"none",color:T.ice,cursor:"pointer",padding:4,display:"flex"}}>{I.menu}</button>
-        <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke={T.ice} strokeWidth="1.3"><path d="M2.7 10.3l9.3 11.7 9.3-11.7-4.3-8.3h-10z"/><path d="M2.7 10.3h18.6"/><path d="M12 22l3-11.7M12 22l-3-11.7"/><path d="M7.7 2l1.3 8.3M16.3 2l-1.3 8.3"/></svg>
+        <svg width={28} height={24} viewBox="0 0 100 75" fill="none"><defs><linearGradient id="hdg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={T.iceLight||T.ice}/><stop offset="100%" stopColor={T.ice}/></linearGradient></defs><g stroke="url(#hdg)" strokeWidth="2.5" strokeLinejoin="round"><path d="M50 72L5 30 18 7h64l13 23L50 72z"/><path d="M5 30h90"/><path d="M50 72L37 30M50 72L63 30"/><path d="M18 7L37 30M82 7L63 30"/><path d="M50 7v23"/><path d="M18 7l19 23h26l19-23" opacity=".35"/></g></svg>
         <span style={{fontSize:22,fontWeight:700,fontFamily:"'Playfair Display',serif",color:T.text,letterSpacing:".04em"}}>DIAMCO</span></div>
       <nav className="dsk" style={{display:"flex",gap:2}}>{nav.map(n=><button key={n.id} onClick={()=>setPg(n.id)} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 16px",borderRadius:10,border:"none",cursor:"pointer",fontSize:13,fontWeight:500,background:pg===n.id?T.chipActive:"transparent",color:pg===n.id?T.text:T.textMuted,fontFamily:"'Outfit',sans-serif"}}>{n.ic}{n.lb}</button>)}</nav>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -434,7 +428,7 @@ export default function DIAMCO(){
       <div className="foot-grid" style={{maxWidth:1200,margin:"0 auto",display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:32,marginBottom:28}}>
         <div>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-            <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={T.ice} strokeWidth="1.3"><path d="M2.7 10.3l9.3 11.7 9.3-11.7-4.3-8.3h-10z"/><path d="M2.7 10.3h18.6"/><path d="M12 22l3-11.7M12 22l-3-11.7"/><path d="M7.7 2l1.3 8.3M16.3 2l-1.3 8.3"/></svg>
+            <svg width={22} height={19} viewBox="0 0 100 75" fill="none"><g stroke={T.ice} strokeWidth="2.5" strokeLinejoin="round"><path d="M50 72L5 30 18 7h64l13 23L50 72z"/><path d="M5 30h90"/><path d="M50 72L37 30M50 72L63 30"/><path d="M18 7L37 30M82 7L63 30"/><path d="M50 7v23"/><path d="M18 7l19 23h26l19-23" opacity=".35"/></g></svg>
             <span style={{fontSize:20,fontWeight:700,fontFamily:"'Playfair Display',serif",color:T.text,letterSpacing:".04em"}}>DIAMCO</span>
           </div>
           <p style={{fontSize:13,color:T.textSecondary,lineHeight:1.7,maxWidth:360}}>{t.footerAboutTxt}</p>
@@ -474,7 +468,7 @@ export default function DIAMCO(){
 
     {/* DIAMCO Watermark — always visible for screenshots */}
     <div style={{position:"fixed",bottom:12,[isRTL?"left":"right"]:16,display:"flex",alignItems:"center",gap:5,opacity:.35,pointerEvents:"none",zIndex:700}}>
-      <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={T.ice} strokeWidth="1.5"><path d="M2.7 10.3l9.3 11.7 9.3-11.7-4.3-8.3h-10z"/><path d="M2.7 10.3h18.6"/></svg>
+      <svg width={16} height={14} viewBox="0 0 100 75" fill="none"><g stroke={T.ice} strokeWidth="3" strokeLinejoin="round"><path d="M50 72L5 30 18 7h64l13 23L50 72z"/><path d="M5 30h90"/><path d="M50 72L37 30M50 72L63 30"/><path d="M18 7L37 30M82 7L63 30"/><path d="M50 7v23"/></g></svg>
       <span style={{fontSize:13,fontWeight:700,fontFamily:"'Playfair Display',serif",color:T.ice,letterSpacing:".06em"}}>DIAMCO</span>
     </div>
   </div></Ctx.Provider>;
