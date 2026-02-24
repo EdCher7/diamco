@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo, useCallback, createContext, useContext } from "react";
+﻿import { useState, useEffect, useMemo, useCallback, useRef, createContext, useContext } from "react";
+import { supabase } from './lib/supabaseClient';
 import * as recharts from "recharts";
 const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie, Area, AreaChart } = recharts;
 
 // ═══════════════════════════════════════════════════════════════════════════
-// DIAMCO v2 — Themes (Dark/Light) · Languages (EN/RU/AR) · RTL
+// DIAMCO v2 — Themes (Dark/Light) В· Languages (EN/RU/AR) В· RTL
 // ═══════════════════════════════════════════════════════════════════════════
 
 const THEMES = {
@@ -30,7 +31,7 @@ const LANGS = {
     filters:"Filters", resetAll:"Reset All", naturalOnly:"Natural Only",
     shape:"Shape", carat:"Carat", color:"Color", clarity:"Clarity", cut:"Cut",
     lab:"Lab", price:"Price", source:"Source", diamonds:"diamonds",
-    saveSearch:"Save Search", setAlert:"Set Alert", searchPH:"Search ID, dealer, city...",
+    saveSearch:"Save Search", setAlert:"Set Alert", searchPH:"Search Code, ID, color, clarity...",
     priceAsc:"Price ↑", priceDesc:"Price ↓", caratDesc:"Carat ↓", caratAsc:"Carat ↑", pctAsc:"$/ct ↑", pctDesc:"$/ct ↓",
     perCt:"/ct", rap:"Rap", daysAgo:"days ago", contactDealer:"Contact Dealer",
     save:"Save", saved:"Saved", share:"Share", compare:"Compare", close:"Close",
@@ -53,7 +54,7 @@ const LANGS = {
     welcomeBack:"Welcome back", joinMP:"Join the diamond marketplace",
     signIn:"Sign In", register:"Register", fullName:"Full Name", company:"Company (optional)",
     email:"Email", password:"Password", buyer:"🛒 Buyer", seller:"💎 Seller", both:"🔄 Both",
-    freeForever:"Free forever · No credit card", byReg:"By registering you agree to Terms",
+    freeForever:"Free forever В· No credit card", byReg:"By registering you agree to Terms",
     savedSearches:"Saved Searches", priceAlerts:"Price Alerts", favorites:"Favorites",
     noSaved:"No saved searches yet", startSearch:"Start Searching",
     noAlerts:"No alerts set", alertDesc:"Save a search to get notified when prices drop",
@@ -71,13 +72,13 @@ const LANGS = {
     signUp:"Регистрация", settings:"Настройки",
     filters:"Фильтры", resetAll:"Сбросить", naturalOnly:"Только натуральные",
     shape:"Форма", carat:"Карат", color:"Цвет", clarity:"Чистота", cut:"Огранка",
-    lab:"Лаборатория", price:"Цена", source:"Источник", diamonds:"бриллиантов",
-    saveSearch:"Сохранить", setAlert:"Алерт", searchPH:"Поиск: ID, дилер, город...",
+    lab:"Лаборатория", price:"Цена", source:"Рсточник", diamonds:"бриллиантов",
+    saveSearch:"Сохранить", setAlert:"Алерт", searchPH:"Поиск: Code, цвет, чистота...",
     priceAsc:"Цена ↑", priceDesc:"Цена ↓", caratDesc:"Карат ↓", caratAsc:"Карат ↑", pctAsc:"$/ct ↑", pctDesc:"$/ct ↓",
     perCt:"/ct", rap:"Rap", daysAgo:"дн. назад", contactDealer:"Связаться с дилером",
     save:"Сохранить", saved:"Сохранено", share:"Поделиться", compare:"Сравнить", close:"Закрыть",
     excellentDeal:"Отличная цена", fairPrice:"Хорошая цена", premium:"Премиум", value:"Оценка",
-    totalPrice:"Итого", polish:"Полировка", symmetry:"Симметрия", fluorescence:"Флуоресценция",
+    totalPrice:"Ртого", polish:"Полировка", symmetry:"Симметрия", fluorescence:"Флуоресценция",
     certNum:"Серт. №", depth:"Глубина", table:"Площадка", measurements:"Размеры", listed:"В листинге",
     calcTitle:"Калькулятор стоимости", calcDesc:"Оценка рыночной стоимости по методологии Rapaport.",
     estimatedPrice:"Расчётная цена", perCarat:"за карат",
@@ -91,17 +92,17 @@ const LANGS = {
     totalListings:"Листингов", avgPriceCt:"Средн. $/ct", allShapes:"Все формы",
     avgDiscount:"Средн. скидка", offRap:"от Rapaport", activeDealers:"Дилеров", inCities:"в", cities:"городах",
     welcomeBack:"С возвращением", joinMP:"Присоединяйтесь",
-    signIn:"Войти", register:"Регистрация", fullName:"Имя", company:"Компания",
+    signIn:"Войти", register:"Регистрация", fullName:"Рмя", company:"Компания",
     email:"Email", password:"Пароль", buyer:"🛒 Покупатель", seller:"💎 Продавец", both:"🔄 Оба",
     freeForever:"Бесплатно навсегда", byReg:"Регистрируясь, вы принимаете Условия",
-    savedSearches:"Сохранённые поиски", priceAlerts:"Алерты цен", favorites:"Избранное",
+    savedSearches:"Сохранённые поиски", priceAlerts:"Алерты цен", favorites:"Рзбранное",
     noSaved:"Нет сохранённых поисков", startSearch:"Начать поиск",
     noAlerts:"Нет алертов", alertDesc:"Сохраните поиск для уведомлений",
     noFavs:"Нажмите ♡ чтобы сохранить",
     load:"Загрузить", watching:"Отслеживаем", triggered:"Сработал!",
     alertWhen:"Алерт при снижении ниже", results:"результатов", notifications:"Уведомления",
     spec:"Параметр", showing:"Показано", of:"из", narrowF:"Сузьте фильтры.",
-    noMatch:"Ничего не найдено", adjustF:"Измените фильтры или",
+    noMatch:"Ничего не найдено", adjustF:"Рзмените фильтры или",
     settingsTitle:"Настройки", theme:"Тема", dark:"Тёмная", light:"Светлая", language:"Язык",
     colorTip:"D=Бесцветный → M=Жёлтый", clarityTip:"FL=Безупречный → I2=Видимые",
     googleSignUp:"Зарегистрироваться через Google", googleSignIn:"Войти через Google", orEmail:"или по email", noAccount:"Нет аккаунта?", haveAccount:"Уже есть аккаунт?",
@@ -112,7 +113,7 @@ const LANGS = {
     filters:"تصفية", resetAll:"إعادة", naturalOnly:"طبيعي فقط",
     shape:"الشكل", carat:"القيراط", color:"اللون", clarity:"النقاء", cut:"القطع",
     lab:"المختبر", price:"السعر", source:"المصدر", diamonds:"ألماس",
-    saveSearch:"حفظ البحث", setAlert:"تنبيه", searchPH:"بحث: المعرف، التاجر...",
+    saveSearch:"حفظ البحث", setAlert:"تنبيه", searchPH:"بحث Code أو لون أو نقاء...",
     priceAsc:"السعر ↑", priceDesc:"السعر ↓", caratDesc:"القيراط ↓", caratAsc:"القيراط ↑", pctAsc:"$/ct ↑", pctDesc:"$/ct ↓",
     perCt:"/ct", rap:"Rap", daysAgo:"أيام", contactDealer:"اتصل بالتاجر",
     save:"حفظ", saved:"محفوظ", share:"مشاركة", compare:"مقارنة", close:"إغلاق",
@@ -167,11 +168,10 @@ const calcPrice=(sh,ct,co,cl,cu,fl)=>Math.round((BP[`${co}-${cl}`]||3000)*(SM[sh
 const SRCS=[{name:"Nivoda",region:"Global",count:0,c:"#3498db"},{name:"IDEX",region:"Tel Aviv",count:0,c:"#9b59b6"},{name:"VDB",region:"Antwerp",count:0,c:"#e67e22"},{name:"Direct",region:"Mumbai",count:0,c:"#2ecc71"},{name:"Stonealgo",region:"USA",count:0,c:"#e74c3c"}];
 const DLRS=["KGK Group","Dharmanandan","Hari Krishna","Venus Jewel","Kiran Gems","Rosy Blue","Diarough","Laurelton","Graff","De Beers","Surat Bourse","Antwerp DC","NY Diamond","HK Gems Hub","Dubai DMCC","Tel Aviv Ex","Bangkok Gem","Tokyo Corp","London Hatton","Paris Vendome"];
 const CITIES=["Mumbai","Surat","Antwerp","New York","Dubai","Tel Aviv","Hong Kong","Bangkok","Tokyo","London","Paris","LA","Geneva","Singapore"];
-const rng=a=>a[Math.floor(Math.random()*a.length)],rf=(a,b)=>+(a+Math.random()*(b-a)).toFixed(2);
-const genD=i=>{const sh=rng(SHAPES),ct=rf(.2,6),co=rng(COLORS_LIST),cl=rng(CLARITIES),cu=rng(CUTS),fl=rng(FLUORESCENCE),lb=rng(LABS),src=rng(SRCS),pr=calcPrice(sh,ct,co,cl,cu,fl);
-  return{id:`DM-${String(i+10001).padStart(6,"0")}`,shape:sh,carat:ct,color:co,clarity:cl,cut:cu,fluorescence:fl,lab:lb,polish:rng(["Excellent","Very Good","Good"]),symmetry:rng(["Excellent","Very Good","Good"]),price:pr,pricePerCt:Math.round(pr/ct),discount:+( -(12+Math.random()*30)).toFixed(1),dealer:rng(DLRS),city:rng(CITIES),source:src.name,depth:rf(57,66),table:rf(53,63),measurements:`${rf(3.5,11).toFixed(2)} × ${rf(3.5,11).toFixed(2)} × ${rf(2,7).toFixed(2)}`,certNumber:`${Math.floor(1e9+Math.random()*9e9)}`,daysListed:Math.floor(Math.random()*120),lastPriceChange:Math.random()>.6?-(1+Math.random()*8).toFixed(1):Math.random()>.5?+(0.5+Math.random()*3).toFixed(1):0,natural:Math.random()>.08};};
-const ALL_D=Array.from({length:500},(_,i)=>genD(i));SRCS.forEach(s=>{s.count=ALL_D.filter(d=>d.source===s.name).length;});
-const MONTHS=["Mar'25","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan'26","Feb"];
+
+
+
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const PH=MONTHS.map((m,i)=>({month:m,r1:Math.round(6200-i*25+Math.sin(i)*80+(i>8?150:0)),r2:Math.round(14800-i*50+Math.sin(i)*120+(i>8?300:0)),o1:Math.round(5100-i*20+Math.cos(i)*60+(i>9?100:0)),c1:Math.round(4800-i*18+Math.sin(i+1)*55+(i>8?90:0))}));
 
 // ─── Icons ──────────────────────────────────────────────────────────────
@@ -202,44 +202,109 @@ const I={
 const Tip=({text,children})=>{const[s,setS]=useState(false);const{T}=useApp();return<span style={{position:"relative",display:"inline-flex",alignItems:"center",cursor:"help"}} onMouseEnter={()=>setS(true)} onMouseLeave={()=>setS(false)}>{children}{s&&<span style={{position:"absolute",bottom:"calc(100% + 8px)",left:"50%",transform:"translateX(-50%)",background:T.tooltipBg,color:T.text,padding:"8px 12px",borderRadius:8,fontSize:12,whiteSpace:"nowrap",zIndex:999,boxShadow:`0 8px 32px ${T.shadow}`,border:`1px solid ${T.border}`,backdropFilter:"blur(20px)"}}>{text}</span>}</span>;};
 const Btn=({children,primary,small,danger,style:sx,...p})=>{const{T}=useApp();return<button{...p}style={{padding:small?"6px 12px":"10px 20px",borderRadius:10,cursor:"pointer",fontSize:small?12:13,fontWeight:600,fontFamily:"'Outfit',sans-serif",display:"inline-flex",alignItems:"center",gap:6,transition:"all .2s",background:primary?T.gradient:danger?`${T.danger}18`:"transparent",color:primary?"#fff":danger?T.danger:T.ice,border:primary?"none":`1px solid ${danger?`${T.danger}40`:T.border}`,...sx}}>{children}</button>;};
 const Chips=({label,opts,sel,onChange,tip})=>{const{T}=useApp();return<div style={{marginBottom:14}}><div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}><span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",color:T.ice}}>{label}</span>{tip&&<Tip text={tip}>{I.info}</Tip>}</div><div style={{display:"flex",flexWrap:"wrap",gap:3}}>{opts.map(o=>{const a=sel.includes(o);return<button key={o} onClick={()=>onChange(a?sel.filter(s=>s!==o):[...sel,o])} style={{padding:"4px 9px",borderRadius:6,border:`1px solid ${a?T.ice:T.border}`,background:a?T.chipActive:"transparent",color:a?T.chipText:T.textMuted,fontSize:11,cursor:"pointer",fontWeight:a?600:400,fontFamily:"'Outfit',sans-serif"}}>{o}</button>;})}</div></div>;};
-const Range=({label,min,max,value:v,onChange,step=.1,fmt=x=>x})=>{const{T}=useApp();return<div style={{marginBottom:14}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",color:T.ice}}>{label}</span><span style={{fontSize:11,color:T.text,fontWeight:500}}>{fmt(v[0])} — {fmt(v[1])}</span></div><div style={{display:"flex",gap:8}}><input type="range" min={min} max={max} step={step} value={v[0]} onChange={e=>onChange([Math.min(+e.target.value,v[1]),v[1]])} style={{flex:1,accentColor:T.ice}}/><input type="range" min={min} max={max} step={step} value={v[1]} onChange={e=>onChange([v[0],Math.max(+e.target.value,v[0])])} style={{flex:1,accentColor:T.ice}}/></div></div>;};
+const Range=({label,min,max,value:v,onChange,step=.1,fmt=x=>x})=>{
+  const{T}=useApp();
+  const timerRef=useRef(null);
+  const clamp=(val,lo,hi)=>Math.round(Math.min(Math.max(val,lo),hi)*100)/100;
+  const stopHold=()=>{clearTimeout(timerRef.current);clearInterval(timerRef.current);};
+  const startHold=(idx,delta)=>{
+    const move=()=>onChange(p=>{const nv=[...p];
+      nv[idx]=clamp(nv[idx]+delta,idx===0?min:p[0]+step,idx===1?max:p[1]-step);
+      return nv;});
+    move();
+    timerRef.current=setTimeout(()=>{timerRef.current=setInterval(move,60);},300);
+  };
+  useEffect(()=>()=>stopHold(),[]);
+  const onBlur=(idx,raw)=>{const n=parseFloat(raw);if(isNaN(n))return;onChange(p=>{const nv=[...p];nv[idx]=clamp(n,idx===0?min:p[0]+step,idx===1?max:p[1]-step);return nv;});};
+  const BtnPM=({idx,up})=><button type="button"
+    onMouseDown={()=>startHold(idx,up?step:-step)} onMouseUp={stopHold} onMouseLeave={stopHold}
+    onTouchStart={e=>{e.preventDefault();startHold(idx,up?step:-step);}} onTouchEnd={stopHold}
+    style={{width:32,height:36,borderRadius:up?"6px 6px 0 0":"0 0 6px 6px",border:`1px solid ${T.border}`,borderBottom:up?`1px solid ${T.border}`:"none",background:T.accentGlow,color:T.ice,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,lineHeight:1,fontSize:16,fontWeight:300,userSelect:"none",WebkitUserSelect:"none"}}>
+    {up?"＋":"－"}
+  </button>;
+  const Field=({idx})=>{const[edit,setEdit]=useState(false);const[tmp,setTmp]=useState("");
+    return<div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
+      <div style={{display:"flex",alignItems:"stretch",borderRadius:6,overflow:"hidden",border:`1px solid ${T.border}`}}>
+        <div style={{display:"flex",flexDirection:"column"}}><BtnPM idx={idx} up={true}/><BtnPM idx={idx} up={false}/></div>
+        <div onClick={()=>{setEdit(true);setTmp(String(v[idx]));}} style={{width:58,background:T.bgInput,display:"flex",alignItems:"center",justifyContent:"center",cursor:"text",borderLeft:`1px solid ${T.border}`}}>
+          {edit
+            ?<input autoFocus value={tmp} onChange={e=>setTmp(e.target.value)}
+                onBlur={()=>{onBlur(idx,tmp);setEdit(false);}}
+                onKeyDown={e=>{if(e.key==="Enter"){onBlur(idx,tmp);setEdit(false);}}}
+                style={{width:"100%",background:"transparent",border:"none",color:T.text,fontSize:13,fontWeight:600,textAlign:"center",fontFamily:"'Outfit',sans-serif",padding:0,outline:"none"}}/>
+            :<span style={{fontSize:13,fontWeight:600,color:T.text,fontFamily:"'Outfit',sans-serif"}}>{fmt(v[idx])}</span>
+          }
+        </div>
+      </div>
+      <span style={{fontSize:9,color:T.textMuted,marginTop:3,textTransform:"uppercase",letterSpacing:".05em"}}>{idx===0?"min":"max"}</span>
+    </div>;};
+  return<div style={{marginBottom:20}}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+      <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",color:T.ice}}>{label}</span>
+      <span style={{fontSize:11,color:T.text,fontWeight:600,background:T.accentGlow,padding:"2px 8px",borderRadius:5,border:`1px solid ${T.border}`}}>{fmt(v[0])} — {fmt(v[1])}</span>
+    </div>
+    <div style={{display:"flex",alignItems:"flex-start",gap:8,justifyContent:"space-between"}}>
+      <Field idx={0}/>
+      <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",paddingTop:14}}>
+        <div style={{height:2,width:"100%",background:`linear-gradient(90deg,${T.ice}40,${T.ice},${T.ice}40)`,borderRadius:1}}/>
+      </div>
+      <Field idx={1}/>
+    </div>
+  </div>;};
+
 const VS=({d})=>{const{T,t}=useApp();const ci=COLORS_LIST.indexOf(d.color),cli=CLARITIES.indexOf(d.clarity),cui=CUTS.indexOf(d.cut);const sc=Math.max(1,Math.min(10,Math.round(10-(ci*.3+cli*.3+cui*.8)+(d.discount<-25?2:0))));const col=sc>=7?T.success:sc>=4?T.warning:T.danger;return<Tip text={`${t.value} ${sc}/10 — ${sc>=7?t.excellentDeal:sc>=4?t.fairPrice:t.premium}`}><span style={{display:"inline-flex",alignItems:"center",gap:3,padding:"2px 8px",borderRadius:16,background:`${col}18`,color:col,fontSize:11,fontWeight:700}}>{I.star(true)} {sc}/10</span></Tip>;};
 
 // ─── Card ───────────────────────────────────────────────────────────────
-const Card=({d,onFav,isFav,onCmp,isCmp,onSel})=>{const[h,setH]=useState(false);const{T,t}=useApp();return<div onClick={()=>onSel(d)} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)} style={{background:h?T.bgHover:T.bgCard,borderRadius:16,padding:"18px 20px",cursor:"pointer",border:`1px solid ${h?T.borderHover:T.border}`,transition:"all .25s",transform:h?"translateY(-3px)":"none",backdropFilter:"blur(12px)",boxShadow:h?`0 12px 40px ${T.shadow}`:"none"}}>
-  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-    <div style={{display:"flex",alignItems:"center",gap:6}}><span style={{fontSize:10,color:T.textDim,fontFamily:"'JetBrains Mono',monospace"}}>{d.id}</span><span style={{fontSize:9,padding:"2px 6px",borderRadius:4,background:T.accentGlow,color:T.ice,fontWeight:600}}>{d.lab}</span><span style={{fontSize:9,padding:"2px 6px",borderRadius:4,background:"rgba(155,89,182,0.12)",color:"#b39ddb",fontWeight:500}}>{d.source}</span></div>
-    <div style={{display:"flex",gap:4}}><button onClick={e=>{e.stopPropagation();onCmp(d);}} style={{background:isCmp?"rgba(52,152,219,0.15)":"transparent",border:"none",cursor:"pointer",color:isCmp?"#3498db":T.textDim,padding:4,borderRadius:6,display:"flex"}}>{I.cmp}</button><button onClick={e=>{e.stopPropagation();onFav(d.id);}} style={{background:"none",border:"none",cursor:"pointer",color:T.textMuted,padding:4,display:"flex"}}>{I.heart(isFav)}</button></div>
+const Card=({d,onFav,isFav,onCmp,isCmp,onSel})=>{const[h,setH]=useState(false);const{T,t}=useApp();
+  const hasPhoto=d.image_url||d.photo_url;
+  return<div onClick={()=>onSel(d)} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)} style={{background:h?T.bgHover:T.bgCard,borderRadius:16,overflow:"hidden",cursor:"pointer",border:`1px solid ${h?T.borderHover:T.border}`,transition:"all .25s",transform:h?"translateY(-3px)":"none",backdropFilter:"blur(12px)",boxShadow:h?`0 12px 40px ${T.shadow}`:"none"}}>
+  {/* Photo / Shape icon area */}
+  <div style={{height:140,background:hasPhoto?"#000":`linear-gradient(135deg,${T.accentGlow},rgba(0,0,0,0.05))`,display:"flex",alignItems:"center",justifyContent:"center",borderBottom:`1px solid ${T.border}`,position:"relative",overflow:"hidden"}}>
+    {hasPhoto?<img src={hasPhoto} alt={d.shape} style={{width:"100%",height:"100%",objectFit:"cover",opacity:.95}}/>
+    :<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,opacity:.5}}><svg width={56} height={56} viewBox="0 0 48 48" fill="none" stroke={T.ice} strokeWidth=".9" strokeLinejoin="round">{
+      d.shape==="Round"?<><circle cx="24" cy="24" r="20"/><polygon points="24,4 44,24 24,44 4,24"/><line x1="24" y1="4" x2="24" y2="44" opacity=".5"/><line x1="4" y1="24" x2="44" y2="24" opacity=".5"/><polygon points="24,10 38,24 24,38 10,24" opacity=".4"/></>
+      :d.shape==="Princess"?<><rect x="4" y="4" width="40" height="40" rx="1"/><line x1="4" y1="4" x2="44" y2="44"/><line x1="44" y1="4" x2="4" y2="44"/><polygon points="24,4 44,24 24,44 4,24" opacity=".5"/></>
+      :d.shape==="Cushion"?<><rect x="4" y="4" width="40" height="40" rx="10"/><polygon points="24,8 40,24 24,40 8,24" opacity=".35"/><line x1="10" y1="7" x2="38" y2="41" opacity=".3"/><line x1="38" y1="7" x2="10" y2="41" opacity=".3"/></>
+      :d.shape==="Oval"?<><ellipse cx="24" cy="24" rx="14" ry="21"/><line x1="24" y1="3" x2="24" y2="45" opacity=".5"/><ellipse cx="24" cy="24" rx="7" ry="12" opacity=".35"/></>
+      :d.shape==="Emerald"?<><rect x="6" y="3" width="36" height="42" rx="3"/><rect x="10" y="7" width="28" height="34" rx="2" opacity=".5"/><rect x="14" y="11" width="20" height="26" rx="1" opacity=".35"/></>
+      :d.shape==="Pear"?<><path d="M24 3C18 3 10 12 10 24c0 8 6 21 14 21s14-13 14-21C38 12 30 3 24 3z"/><line x1="24" y1="3" x2="24" y2="45" opacity=".5"/></>
+      :d.shape==="Marquise"?<><ellipse cx="24" cy="24" rx="11" ry="22"/><line x1="24" y1="2" x2="24" y2="46" opacity=".5"/></>
+      :d.shape==="Radiant"?<><rect x="5" y="3" width="38" height="42" rx="2"/><line x1="5" y1="3" x2="43" y2="45"/><line x1="43" y1="3" x2="5" y2="45"/></>
+      :d.shape==="Asscher"?<><rect x="4" y="4" width="40" height="40" rx="2"/><rect x="10" y="10" width="28" height="28" rx="1" opacity=".5"/><rect x="16" y="16" width="16" height="16" rx="1" opacity=".35"/></>
+      :d.shape==="Heart"?<><path d="M24 44C24 44 4 30 4 16C4 9 9 4 15 4c3.5 0 6.5 1.8 9 5 2.5-3.2 5.5-5 9-5 6 0 11 5 11 12C44 30 24 44 24 44z"/><line x1="24" y1="9" x2="24" y2="44" opacity=".5"/></>
+      :<><path d="M4 18l20 26 20-26L36 4H12z"/><path d="M4 18h40"/></>
+    }</svg><span style={{fontSize:10,color:T.textMuted,fontFamily:"'JetBrains Mono',monospace"}}>{d.shape}</span></div>}
+    <div style={{position:"absolute",top:8,right:8,display:"flex",gap:4}}>
+      <button onClick={e=>{e.stopPropagation();onCmp(d);}} style={{background:isCmp?"rgba(52,152,219,0.2)":"rgba(0,0,0,.4)",backdropFilter:"blur(8px)",border:"none",cursor:"pointer",color:isCmp?"#3498db":"#fff",width:30,height:30,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center"}}>{I.cmp}</button>
+      <button onClick={e=>{e.stopPropagation();onFav(d.id);}} style={{background:"rgba(0,0,0,.4)",backdropFilter:"blur(8px)",border:"none",cursor:"pointer",color:isFav?"#e74c3c":"#fff",width:30,height:30,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center"}}>{I.heart(isFav)}</button>
+    </div>
   </div>
-  <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-    <div style={{width:52,height:52,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",background:`linear-gradient(135deg,${T.accentGlow},transparent)`,border:`1px solid ${T.border}`,color:T.ice}}><svg width={30} height={30} viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth=".9" strokeLinejoin="round">{
-      d.shape==="Round"?<><circle cx="24" cy="24" r="20"/><polygon points="24,4 44,24 24,44 4,24"/><line x1="24" y1="4" x2="24" y2="44" opacity=".5"/><line x1="4" y1="24" x2="44" y2="24" opacity=".5"/><polygon points="24,10 38,24 24,38 10,24" opacity=".4"/><line x1="10" y1="10" x2="38" y2="38" opacity=".3"/><line x1="38" y1="10" x2="10" y2="38" opacity=".3"/></>
-      :d.shape==="Princess"?<><rect x="4" y="4" width="40" height="40" rx="1"/><line x1="4" y1="4" x2="44" y2="44"/><line x1="44" y1="4" x2="4" y2="44"/><polygon points="24,4 44,24 24,44 4,24" opacity=".5"/><line x1="24" y1="4" x2="24" y2="44" opacity=".3"/><line x1="4" y1="24" x2="44" y2="24" opacity=".3"/></>
-      :d.shape==="Cushion"?<><rect x="4" y="4" width="40" height="40" rx="10"/><line x1="4" y1="24" x2="44" y2="24" opacity=".4"/><line x1="24" y1="4" x2="24" y2="44" opacity=".4"/><line x1="10" y1="7" x2="38" y2="41" opacity=".3"/><line x1="38" y1="7" x2="10" y2="41" opacity=".3"/><polygon points="24,8 40,24 24,40 8,24" opacity=".35"/></>
-      :d.shape==="Oval"?<><ellipse cx="24" cy="24" rx="14" ry="21"/><line x1="24" y1="3" x2="24" y2="45" opacity=".5"/><line x1="10" y1="24" x2="38" y2="24" opacity=".4"/><line x1="13" y1="8" x2="35" y2="40" opacity=".3"/><line x1="35" y1="8" x2="13" y2="40" opacity=".3"/><ellipse cx="24" cy="24" rx="7" ry="12" opacity=".35"/></>
-      :d.shape==="Pear"?<><path d="M24 3C18 3 10 12 10 24c0 8 6 21 14 21s14-13 14-21C38 12 30 3 24 3z"/><line x1="24" y1="3" x2="24" y2="45" opacity=".5"/><line x1="10" y1="26" x2="38" y2="26" opacity=".4"/><path d="M24 3L10 26" opacity=".3"/><path d="M24 3L38 26" opacity=".3"/><path d="M14 14L34 36" opacity=".25"/><path d="M34 14L14 36" opacity=".25"/><ellipse cx="24" cy="27" rx="7" ry="9" opacity=".3"/></>
-      :d.shape==="Emerald"?<><rect x="6" y="3" width="36" height="42" rx="3"/><rect x="10" y="7" width="28" height="34" rx="2" opacity=".5"/><rect x="14" y="11" width="20" height="26" rx="1" opacity=".35"/><line x1="6" y1="3" x2="10" y2="7" opacity=".4"/><line x1="42" y1="3" x2="38" y2="7" opacity=".4"/><line x1="6" y1="45" x2="10" y2="41" opacity=".4"/><line x1="42" y1="45" x2="38" y2="41" opacity=".4"/><line x1="24" y1="3" x2="24" y2="45" opacity=".25"/></>
-      :d.shape==="Marquise"?<><ellipse cx="24" cy="24" rx="11" ry="22"/><line x1="24" y1="2" x2="24" y2="46" opacity=".5"/><line x1="13" y1="24" x2="35" y2="24" opacity=".4"/><path d="M24 2L13 24L24 46" opacity=".3"/><path d="M24 2L35 24L24 46" opacity=".3"/><line x1="15" y1="10" x2="33" y2="38" opacity=".25"/><line x1="33" y1="10" x2="15" y2="38" opacity=".25"/><ellipse cx="24" cy="24" rx="5" ry="12" opacity=".3"/></>
-      :d.shape==="Radiant"?<><rect x="5" y="3" width="38" height="42" rx="2"/><line x1="5" y1="3" x2="43" y2="45"/><line x1="43" y1="3" x2="5" y2="45"/><polygon points="24,3 43,24 24,45 5,24" opacity=".4"/><line x1="24" y1="3" x2="24" y2="45" opacity=".3"/><line x1="5" y1="24" x2="43" y2="24" opacity=".3"/></>
-      :d.shape==="Asscher"?<><rect x="4" y="4" width="40" height="40" rx="2"/><rect x="10" y="10" width="28" height="28" rx="1" opacity=".5"/><rect x="16" y="16" width="16" height="16" rx="1" opacity=".35"/><line x1="4" y1="4" x2="10" y2="10" opacity=".4"/><line x1="44" y1="4" x2="38" y2="10" opacity=".4"/><line x1="4" y1="44" x2="10" y2="38" opacity=".4"/><line x1="44" y1="44" x2="38" y2="38" opacity=".4"/><line x1="24" y1="4" x2="24" y2="16" opacity=".3"/><line x1="24" y1="32" x2="24" y2="44" opacity=".3"/></>
-      :d.shape==="Heart"?<><path d="M24 44C24 44 4 30 4 16C4 9 9 4 15 4c3.5 0 6.5 1.8 9 5 2.5-3.2 5.5-5 9-5 6 0 11 5 11 12C44 30 24 44 24 44z"/><line x1="24" y1="9" x2="24" y2="44" opacity=".5"/><path d="M24 44L8 20" opacity=".3"/><path d="M24 44L40 20" opacity=".3"/><path d="M4 18h16" opacity=".3"/><path d="M28 18h16" opacity=".3"/><path d="M10 10L20 22" opacity=".25"/><path d="M38 10L28 22" opacity=".25"/></>
-      :<><path d="M4 18l20 26 20-26L36 4H12z"/><path d="M4 18h40"/><path d="M24 44L16 18M24 44L32 18"/><path d="M12 4l4 14M36 4l-4 14"/><path d="M24 4v14" opacity=".4"/></>
-    }</svg></div>
-    <div style={{flex:1}}><div style={{fontSize:16,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{d.carat} ct {d.shape}</div><div style={{fontSize:12,color:T.textSecondary,marginTop:2}}>{d.color} · {d.clarity} · {d.cut}</div></div>
-  </div>
-  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}}>
-    <div><div style={{fontSize:22,fontWeight:700,color:T.text}}>${d.price.toLocaleString()}</div><div style={{fontSize:11,color:T.textMuted,marginTop:2}}>${d.pricePerCt.toLocaleString()}{t.perCt} · <span style={{color:d.discount<-25?T.success:T.warning}}>{d.discount}%</span>{d.lastPriceChange!==0&&<span style={{marginLeft:6,color:d.lastPriceChange<0?T.success:T.danger}}>{d.lastPriceChange>0?"+":""}{d.lastPriceChange}%</span>}</div></div>
-    <VS d={d}/>
+  {/* Info area */}
+  <div style={{padding:"14px 16px"}}>
+    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}><span style={{fontSize:11,color:T.ice,fontFamily:"'JetBrains Mono',monospace",fontWeight:700,background:T.accentGlow,padding:"2px 8px",borderRadius:5,border:`1px solid ${T.border}`}}>{d.code||d.id}</span><span style={{fontSize:9,padding:"2px 6px",borderRadius:4,background:T.accentGlow,color:T.ice,fontWeight:600}}>{d.lab}</span></div>
+    <div style={{fontSize:16,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif",marginBottom:2}}>{d.carat} ct {d.shape}</div>
+    <div style={{fontSize:12,color:T.textSecondary,marginBottom:12}}>{d.color} · {d.clarity} · {d.cut}</div>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}}>
+      <div><div style={{fontSize:22,fontWeight:700,color:T.text}}>${d.price.toLocaleString()}</div><div style={{fontSize:11,color:T.textMuted,marginTop:2}}>${d.pricePerCt.toLocaleString()}{t.perCt}{d.discount!==0?<span style={{marginLeft:4,color:d.discount<-25?T.success:T.warning}}> · {d.discount}%</span>:<span style={{marginLeft:4,color:T.textMuted,fontStyle:"italic"}}> · Fancy</span>}</div></div>
+      <VS d={d}/>
+    </div>
   </div></div>;};
 
 // ─── Detail Modal ───────────────────────────────────────────────────────
-const Detail=({d,onClose,onFav,isFav})=>{const{T,t}=useApp();if(!d)return null;
-  const sp=[[t.shape,d.shape],[t.carat,d.carat],[t.color,d.color],[t.clarity,d.clarity],[t.cut,d.cut],[t.polish,d.polish],[t.symmetry,d.symmetry],[t.fluorescence,d.fluorescence],[t.lab,d.lab],[t.certNum,d.certNumber],[t.depth,d.depth+"%"],[t.table,d.table+"%"],[t.measurements,d.measurements],[t.source,d.source],[t.listed,d.daysListed+" "+t.daysAgo]];
+const Detail=({d,onClose,onFav,isFav,usr,onNeedAuth})=>{const{T,t}=useApp();const[copied,setCopied]=useState(false);if(!d)return null;
+  const sp=[[t.shape,d.shape],[t.carat,d.carat],[t.color,d.color],[t.clarity,d.clarity],[t.cut,d.cut],[t.polish,d.polish],[t.symmetry,d.symmetry],[t.fluorescence,d.fluorescence],[t.lab,d.lab],[t.certNum,d.certNumber],[t.depth,d.depth+"%"],[t.table,d.table+"%"],[t.measurements,d.measurements],[t.listed,d.daysListed+" "+t.daysAgo]].filter(([,v])=>v!==undefined&&v!==null&&v!=="");
+  const doShare=async()=>{const url=`${window.location.origin}?d=${d.code||d.id}`;const txt=`${d.carat}ct ${d.shape} | ${d.color} ${d.clarity} | $${d.price.toLocaleString()} — DIAMCO`;if(navigator.share){try{await navigator.share({title:`DIAMCO — ${d.carat}ct ${d.shape}`,text:txt,url});}catch(e){}}else{navigator.clipboard?.writeText(url).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);});}};
   return<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",backdropFilter:"blur(12px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:T.bgModal,borderRadius:24,padding:"28px 32px",maxWidth:640,width:"100%",border:`1px solid ${T.border}`,maxHeight:"90vh",overflowY:"auto"}}>
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}><div><div style={{fontSize:26,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{d.carat} ct {d.shape}</div><div style={{fontSize:13,color:T.textMuted,marginTop:4}}>{d.id} · {d.lab} #{d.certNumber}</div></div><button onClick={onClose} style={{background:T.accentGlow,border:"none",color:T.ice,width:36,height:36,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>{I.x}</button></div>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}><div><div style={{fontSize:26,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{d.carat} ct {d.shape}</div><div style={{fontSize:13,color:T.textMuted,marginTop:4}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,color:T.ice,background:T.accentGlow,padding:"2px 8px",borderRadius:5,border:`1px solid ${T.border}`,fontSize:12}}>{d.code||d.id}</span><span style={{marginLeft:8,color:T.textMuted}}>{d.lab} #{d.certNumber}</span></div></div><button onClick={onClose} style={{background:T.accentGlow,border:"none",color:T.ice,width:36,height:36,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>{I.x}</button></div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:24,background:T.accentGlow,borderRadius:16,padding:20,border:`1px solid ${T.border}`}}>{sp.map(([l,v])=><div key={l}><div style={{fontSize:9,color:T.textMuted,textTransform:"uppercase",letterSpacing:".12em",marginBottom:2}}>{l}</div><div style={{fontSize:13,color:T.text,fontWeight:600}}>{v}</div></div>)}</div>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:`linear-gradient(135deg,${T.accentGlow},transparent)`,borderRadius:16,padding:24,marginBottom:20,border:`1px solid ${T.border}`}}><div><div style={{fontSize:10,color:T.textMuted,textTransform:"uppercase",marginBottom:4}}>{t.totalPrice}</div><div style={{fontSize:36,fontWeight:700,color:T.text}}>${d.price.toLocaleString()}</div><div style={{fontSize:13,color:T.textSecondary}}>${d.pricePerCt.toLocaleString()}{t.perCt}</div></div><div style={{textAlign:"right"}}><VS d={d}/><div style={{fontSize:12,color:T.textSecondary,marginTop:8}}>{d.dealer}</div><div style={{fontSize:11,color:T.textMuted}}>{d.city}</div></div></div>
-    <div style={{display:"flex",gap:10}}><Btn primary style={{flex:1,justifyContent:"center",padding:"14px"}}>{t.contactDealer}</Btn><Btn onClick={()=>onFav(d.id)}>{I.heart(isFav)} {isFav?t.saved:t.save}</Btn><Btn>{I.ext} {t.share}</Btn></div>
+    <div style={{display:"flex",gap:10}}><Btn primary style={{flex:1,justifyContent:"center",padding:"14px"}}>{t.contactDealer}</Btn>
+      <Btn onClick={()=>onFav(d.id)}>{I.heart(isFav)} {isFav?t.saved:t.save}</Btn>
+      <Btn onClick={doShare}>{I.ext} {copied?"Copied!":t.share}</Btn>
+    </div>
+    {!usr&&<div style={{marginTop:12,padding:"10px 14px",borderRadius:10,background:`${T.warning}18`,border:`1px solid ${T.warning}40`,fontSize:12,color:T.textSecondary,textAlign:"center"}}>
+      {t.haveAccount?t.haveAccount:"Sign in"} <button onClick={onNeedAuth} style={{background:"none",border:"none",color:T.ice,cursor:"pointer",fontWeight:600,fontSize:12,textDecoration:"underline"}}>Sign in / Register</button> {" to save & get alerts"}
+    </div>}
   </div></div>;};
 
 // ─── Calculator ─────────────────────────────────────────────────────────
@@ -250,25 +315,29 @@ const Calc=()=>{const{T,t}=useApp();const[sh,setSh]=useState("Round"),[ct,setCt]
   return<div style={{maxWidth:960,margin:"0 auto"}}><div style={{marginBottom:28}}><h2 style={{fontSize:28,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif",margin:0}}>{t.calcTitle}</h2><p style={{color:T.textSecondary,fontSize:13,marginTop:6}}>{t.calcDesc}</p></div>
     <div className="calc-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24,marginBottom:28}}><div style={{background:T.bgCard,borderRadius:20,padding:28,border:`1px solid ${T.border}`}}><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}><Sel label={t.shape} opts={SHAPES} value={sh} onChange={setSh}/><div><div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",color:T.ice,marginBottom:6}}>{t.carat}</div><input type="number" step=".01" min=".1" max="20" value={ct} onChange={e=>setCt(e.target.value)} style={{width:"100%",padding:"10px 12px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bgInput,color:T.text,fontSize:13,boxSizing:"border-box"}}/></div><Sel label={t.color} opts={COLORS_LIST} value={co} onChange={setCo}/><Sel label={t.clarity} opts={CLARITIES} value={cl} onChange={setCl}/><Sel label={t.cut} opts={CUTS} value={cu} onChange={setCu}/><Sel label={t.fluorescence} opts={FLUORESCENCE} value={fl} onChange={setFl}/></div></div>
       <div><div style={{background:`linear-gradient(135deg,${T.accentGlow},transparent)`,borderRadius:20,padding:28,border:`1px solid ${T.borderHover}`,textAlign:"center",marginBottom:14}}><div style={{fontSize:10,color:T.textMuted,textTransform:"uppercase",marginBottom:8}}>{t.estimatedPrice}</div><div style={{fontSize:52,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>${pr.toLocaleString()}</div><div style={{fontSize:14,color:T.textSecondary,marginTop:4}}>${ppc.toLocaleString()} {t.perCarat}</div></div>
-        <div style={{background:T.bgCard,borderRadius:16,padding:18,border:`1px solid ${T.border}`}}><div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",color:T.ice,marginBottom:10}}>{t.whatIf}</div>{cmps.map((c,i)=>{const df=c.v-pr,pc=((df/pr)*100).toFixed(1);return<div key={i} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:i<3?`1px solid ${T.border}`:"none"}}><span style={{fontSize:12,color:T.textSecondary}}>{c.l}</span><span style={{fontSize:12,color:df<0?T.success:T.danger,fontWeight:600}}>{df<0?t.saveMoney:t.plus} ${Math.abs(df).toLocaleString()} ({pc}%)</span></div>;})}</div></div></div>
-    <div className="edu-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14}}>{[{n:t.carat,d:t.caratEd,e:"⚖️"},{n:t.cut,d:t.cutEd,e:"✨"},{n:t.color,d:t.colorEd,e:"💠"},{n:t.clarity,d:t.clarityEd,e:"🔬"}].map(c=><div key={c.n} style={{background:T.bgCard,borderRadius:14,padding:18,border:`1px solid ${T.border}`}}><div style={{fontSize:26,marginBottom:6}}>{c.e}</div><div style={{fontSize:13,fontWeight:700,color:T.text,marginBottom:4}}>{c.n}</div><div style={{fontSize:11,color:T.textSecondary,lineHeight:1.5}}>{c.d}</div></div>)}</div></div>;};
+        <div style={{background:T.bgCard,borderRadius:16,padding:18,border:`1px solid ${T.border}`}}><div style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",color:T.ice,marginBottom:10}}>{t.whatIf}</div>{cmps.map((c,i)=>{const df=c.v-pr,pc=((df/pr)*100).toFixed(1);return<div key={i} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:`1px solid ${T.border}`}}><span style={{fontSize:12,color:T.textSecondary}}>{c.l}</span><span style={{fontSize:12,color:df<0?T.success:T.danger,fontWeight:600}}>{df<0?t.saveMoney:t.plus} ${Math.abs(df).toLocaleString()} ({pc}%)</span></div>;})}
+          {(()=>{const totalSave=cmps.reduce((s,c)=>s+(c.v<pr?pr-c.v:0),0);return totalSave>0&&<div style={{display:"flex",justifyContent:"space-between",padding:"10px 0 2px",marginTop:2}}><span style={{fontSize:12,fontWeight:700,color:T.text}}>Макс. экономия (все)</span><span style={{fontSize:13,fontWeight:700,color:T.success}}>до −${totalSave.toLocaleString()}</span></div>;})()} </div></div></div>
+    <div className="edu-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14}}>{[{n:t.carat,d:t.caratEd,e:"⚖️"},{n:t.cut,d:t.cutEd,e:"✨"},{n:t.color,d:t.colorEd,e:"💠"},{n:t.clarity,d:t.clarityEd,e:"🔬"}].map(c=><div key={c.n} style={{background:T.bgCard,borderRadius:14,padding:18,border:`1px solid ${T.border}`}}><div style={{fontSize:26,marginBottom:6}}>{c.e}</div><div style={{fontSize:13,fontWeight:700,color:T.text,marginBottom:4}}>{c.n}</div><div style={{fontSize:11,color:T.textSecondary,lineHeight:1.5}}>{c.d}</div></div>)}</div>
+    <div style={{marginTop:16,padding:"12px 16px",borderRadius:12,background:T.accentGlow,border:`1px solid ${T.border}`,fontSize:11,color:T.textMuted,lineHeight:1.6}}>
+      ⚠️ <strong style={{color:T.textSecondary}}>Disclaimer:</strong> Estimated prices are based on Rapaport methodology and are for informational purposes only. Actual market prices may vary. DIAMCO does not guarantee any specific price. Prices are indicated in USD and are subject to change without notice.
+    </div></div>;};
 
 // ─── Analytics ──────────────────────────────────────────────────────────
-const Anlt=()=>{const{T,t}=useApp();const[ss,setSs]=useState("Round");
-  const sd=useMemo(()=>{const c={};ALL_D.forEach(d=>{c[d.shape]=(c[d.shape]||0)+1;});return Object.entries(c).map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value);},[]);
-  const abc=useMemo(()=>{const d={};ALL_D.filter(x=>x.shape===ss&&x.carat>=.9&&x.carat<=1.5).forEach(x=>{if(!d[x.color])d[x.color]={s:0,c:0};d[x.color].s+=x.pricePerCt;d[x.color].c++;});return COLORS_LIST.map(c=>({color:c,avg:d[c]?Math.round(d[c].s/d[c].c):0})).filter(x=>x.avg>0);},[ss]);
+const Anlt=()=>{const{T,t,ALL_D}=useApp();const[ss,setSs]=useState("Round");
+  const sd=useMemo(()=>{const c={};ALL_D.forEach(d=>{c[d.shape]=(c[d.shape]||0)+1;});return Object.entries(c).map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value);},[ALL_D]);
+  const abc=useMemo(()=>{const d={};ALL_D.filter(x=>x.shape===ss&&x.carat>=.9&&x.carat<=1.5).forEach(x=>{if(!d[x.color])d[x.color]={s:0,c:0};d[x.color].s+=x.pricePerCt;d[x.color].c++;});return COLORS_LIST.map(c=>({color:c,avg:d[c]?Math.round(d[c].s/d[c].c):0})).filter(x=>x.avg>0);},[ss,ALL_D]);
   const PC=["#7eb8d8","#a8d8ee","#4a8baa","#d0eaf5","#5b9cb8","#89c4e1","#3a7a98","#b8dff0","#6aacca","#c8e8f5"];
   const CTooltip=({active,payload,label})=>{if(!active||!payload?.length)return null;return<div style={{background:T.tooltipBg,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 14px",boxShadow:`0 8px 32px ${T.shadow}`}}><div style={{color:T.text,fontWeight:600,fontSize:13,marginBottom:4}}>{label}</div>{payload.map((p,i)=><div key={i} style={{color:T.textSecondary,fontSize:12}}><span style={{color:p.color||T.ice,marginRight:6}}>●</span>{p.name}: <span style={{color:T.text,fontWeight:600}}>${p.value?.toLocaleString()}/ct</span></div>)}</div>;};
   const CTooltipSimple=({active,payload})=>{if(!active||!payload?.length)return null;return<div style={{background:T.tooltipBg,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 14px",boxShadow:`0 8px 32px ${T.shadow}`}}>{payload.map((p,i)=><div key={i} style={{color:T.text,fontWeight:600,fontSize:13}}>{p.name}: <span style={{color:T.ice}}>{p.value}</span></div>)}</div>;};
-  return<div style={{maxWidth:1100,margin:"0 auto"}}><div style={{marginBottom:28}}><h2 style={{fontSize:28,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif",margin:0}}>{t.analyticsTitle}</h2><p style={{color:T.textSecondary,fontSize:13,marginTop:6}}>{t.from} {SRCS.length} {t.sources} · {ALL_D.length} {t.tracked}</p></div>
-    <div style={{display:"flex",gap:10,marginBottom:24,overflowX:"auto",paddingBottom:4}}>{SRCS.map(s=><div key={s.name} style={{background:T.bgCard,borderRadius:12,padding:"12px 18px",border:`1px solid ${T.border}`,minWidth:140,flex:"0 0 auto"}}><div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}><div style={{width:8,height:8,borderRadius:"50%",background:s.c}}/><span style={{fontSize:13,fontWeight:600,color:T.text}}>{s.name}</span></div><div style={{fontSize:11,color:T.textSecondary}}>{s.count} {t.diamonds}</div></div>)}</div>
+  return<div style={{maxWidth:1100,margin:"0 auto"}}><div style={{marginBottom:28}}><h2 style={{fontSize:28,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif",margin:0}}>{t.analyticsTitle}</h2><p style={{color:T.textSecondary,fontSize:13,marginTop:6}}>{t.from} {SRCS.length} {t.sources} В· {ALL_D.length} {t.tracked}</p></div>
+    
     <div style={{background:T.bgCard,borderRadius:20,padding:28,marginBottom:24,border:`1px solid ${T.border}`}}><div style={{fontSize:16,fontWeight:700,color:T.text,marginBottom:2}}>{t.priceTrends}</div><div style={{fontSize:12,color:T.textMuted,marginBottom:20}}>{t.avgPop}</div>
       <ResponsiveContainer width="100%" height={280}><AreaChart data={PH}><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={T.ice} stopOpacity={.15}/><stop offset="100%" stopColor={T.ice} stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke={T.border}/><XAxis dataKey="month" stroke={T.textSecondary} fontSize={11}/><YAxis stroke={T.textSecondary} fontSize={11} tickFormatter={v=>`$${(v/1000).toFixed(1)}k`}/><Tooltip content={CTooltip}/><Area type="monotone" dataKey="r1" stroke={T.ice} strokeWidth={2.5} fill="url(#g1)" name="Round 1ct"/><Line type="monotone" dataKey="r2" stroke="#a8d8ee" strokeWidth={2} dot={false} name="Round 2ct"/><Line type="monotone" dataKey="o1" stroke="#4a8baa" strokeWidth={1.8} dot={false} name="Oval 1ct"/></AreaChart></ResponsiveContainer></div>
     <div className="an-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
       <div style={{background:T.bgCard,borderRadius:20,padding:28,border:`1px solid ${T.border}`}}><div style={{fontSize:16,fontWeight:700,color:T.text,marginBottom:16}}>{t.shapeDist}</div><ResponsiveContainer width="100%" height={240}><PieChart><Pie data={sd} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={85} innerRadius={40} strokeWidth={0} label={({name,percent})=>`${name} ${(percent*100).toFixed(0)}%`} labelLine={{stroke:T.textDim}} fontSize={11} fill={T.text}>{sd.map((_,i)=><Cell key={i} fill={PC[i%PC.length]}/>)}</Pie><Tooltip content={CTooltipSimple}/></PieChart></ResponsiveContainer></div>
       <div style={{background:T.bgCard,borderRadius:20,padding:28,border:`1px solid ${T.border}`}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:16}}><div style={{fontSize:16,fontWeight:700,color:T.text}}>{t.avgByColor}</div><select value={ss} onChange={e=>setSs(e.target.value)} style={{padding:"4px 8px",borderRadius:8,background:T.accentGlow,border:`1px solid ${T.border}`,color:T.ice,fontSize:11}}>{SHAPES.map(s=><option key={s}>{s}</option>)}</select></div><ResponsiveContainer width="100%" height={240}><BarChart data={abc}><CartesianGrid strokeDasharray="3 3" stroke={T.border}/><XAxis dataKey="color" stroke={T.textSecondary} fontSize={11}/><YAxis stroke={T.textSecondary} fontSize={10} tickFormatter={v=>`$${(v/1000).toFixed(1)}k`}/><Tooltip content={CTooltip}/><Bar dataKey="avg" radius={[6,6,0,0]}>{abc.map((_,i)=><Cell key={i} fill={PC[i%PC.length]}/>)}</Bar></BarChart></ResponsiveContainer></div>
     </div>
-    <div className="stats-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginTop:24}}>{[{l:t.totalListings,v:ALL_D.length,s:`${t.from} ${SRCS.length} ${t.sources}`},{l:t.avgPriceCt,v:`$${Math.round(ALL_D.reduce((s,d)=>s+d.pricePerCt,0)/ALL_D.length).toLocaleString()}`,s:t.allShapes},{l:t.avgDiscount,v:`${(ALL_D.reduce((s,d)=>s+d.discount,0)/ALL_D.length).toFixed(1)}%`,s:t.offRap},{l:t.activeDealers,v:new Set(ALL_D.map(d=>d.dealer)).size,s:`${t.inCities} ${new Set(ALL_D.map(d=>d.city)).size} ${t.cities}`}].map(s=><div key={s.l} style={{background:T.bgCard,borderRadius:14,padding:18,textAlign:"center",border:`1px solid ${T.border}`}}><div style={{fontSize:28,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{s.v}</div><div style={{fontSize:12,fontWeight:600,color:T.ice,marginTop:4}}>{s.l}</div><div style={{fontSize:10,color:T.textMuted,marginTop:2}}>{s.s}</div></div>)}</div></div>;};
+    <div className="stats-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginTop:24}}>{[{l:t.totalListings,v:ALL_D.length,s:`${t.from} ${SRCS.length} ${t.sources}`},{l:t.avgPriceCt,v:ALL_D.length?`$${Math.round(ALL_D.reduce((s,d)=>s+d.pricePerCt,0)/ALL_D.length).toLocaleString()}`:"—",s:t.allShapes},{l:t.avgDiscount,v:ALL_D.length?`${(ALL_D.reduce((s,d)=>s+d.discount,0)/ALL_D.length).toFixed(1)}%`:"—",s:t.offRap},{l:t.activeDealers,v:new Set(ALL_D.map(d=>d.dealer)).size,s:`${t.inCities} ${new Set(ALL_D.map(d=>d.city)).size} ${t.cities}`}].map(s=><div key={s.l} style={{background:T.bgCard,borderRadius:14,padding:18,textAlign:"center",border:`1px solid ${T.border}`}}><div style={{fontSize:28,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{s.v}</div><div style={{fontSize:12,fontWeight:600,color:T.ice,marginTop:4}}>{s.l}</div><div style={{fontSize:10,color:T.textMuted,marginTop:2}}>{s.s}</div></div>)}</div></div>;};
 
 // ─── Auth ───────────────────────────────────────────────────────────────
 const Auth=({onClose,onAuth,initMode="login"})=>{const{T,t}=useApp();const[mode,setMode]=useState(initMode),[em,setEm]=useState(""),[pw,setPw]=useState(""),[nm,setNm]=useState(""),[co,setCo]=useState(""),[rl,setRl]=useState("buyer");
@@ -286,10 +355,10 @@ const Auth=({onClose,onAuth,initMode="login"})=>{const{T,t}=useApp();const[mode,
     <p style={{textAlign:"center",fontSize:12,color:T.textMuted,marginTop:16}}>{mode==="login"?<>{t.noAccount} <button onClick={()=>setMode("register")} style={{background:"none",border:"none",color:T.ice,cursor:"pointer",textDecoration:"underline",fontSize:12,fontFamily:"'Outfit',sans-serif"}}>{t.register}</button></>:<>{t.haveAccount} <button onClick={()=>setMode("login")} style={{background:"none",border:"none",color:T.ice,cursor:"pointer",textDecoration:"underline",fontSize:12,fontFamily:"'Outfit',sans-serif"}}>{t.signIn}</button></>}</p></div></div>;};
 
 // ─── Profile ────────────────────────────────────────────────────────────
-const Prof=({user:u,setUser,onGo})=>{const{T,t}=useApp();const favD=ALL_D.filter(d=>u.favorites?.includes(d.id));
+const Prof=({user:u,setUser,onGo})=>{const{T,t,ALL_D}=useApp();const favD=ALL_D.filter(d=>u.favorites?.includes(d.id));
   return<div style={{maxWidth:1000,margin:"0 auto"}}><div style={{background:T.bgCard,borderRadius:20,padding:28,marginBottom:24,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",gap:16}}>
     <div style={{width:56,height:56,borderRadius:"50%",background:T.gradient,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,fontWeight:700,color:"#fff"}}>{(u.name||"U")[0].toUpperCase()}</div>
-    <div><div style={{fontSize:22,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{u.name}</div><div style={{fontSize:13,color:T.textSecondary}}>{u.email} · {u.role}</div></div></div>
+    <div><div style={{fontSize:22,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{u.name}</div><div style={{fontSize:13,color:T.textSecondary}}>{u.email} В· {u.role}</div></div></div>
     <div className="prof-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
       <div style={{background:T.bgCard,borderRadius:20,padding:24,border:`1px solid ${T.border}`}}><div style={{fontSize:16,fontWeight:700,color:T.text,marginBottom:16}}>{t.savedSearches}</div>
         {(!u.savedSearches?.length)?<div style={{textAlign:"center",padding:"28px 0"}}><div style={{fontSize:13,color:T.textSecondary,marginBottom:12}}>{t.noSaved}</div><Btn small primary onClick={()=>onGo()}>{t.startSearch}</Btn></div>
@@ -300,7 +369,7 @@ const Prof=({user:u,setUser,onGo})=>{const{T,t}=useApp();const favD=ALL_D.filter
     </div>
     <div style={{background:T.bgCard,borderRadius:20,padding:24,marginTop:24,border:`1px solid ${T.border}`}}><div style={{fontSize:16,fontWeight:700,color:T.text,marginBottom:16}}>{t.favorites} ({favD.length})</div>
       {!favD.length?<div style={{textAlign:"center",padding:"28px 0",fontSize:13,color:T.textSecondary}}>{t.noFavs}</div>
-      :<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>{favD.slice(0,8).map(d=><div key={d.id} style={{background:T.accentGlow,borderRadius:12,padding:14,border:`1px solid ${T.border}`}}><div style={{fontSize:14,fontWeight:600,color:T.text}}>{d.carat}ct {d.shape}</div><div style={{fontSize:11,color:T.textSecondary}}>{d.color} · {d.clarity}</div><div style={{fontSize:16,fontWeight:700,color:T.text,marginTop:6}}>${d.price.toLocaleString()}</div></div>)}</div>}
+      :<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>{favD.slice(0,8).map(d=><div key={d.id} style={{background:T.accentGlow,borderRadius:12,padding:14,border:`1px solid ${T.border}`}}><div style={{fontSize:14,fontWeight:600,color:T.text}}>{d.carat}ct {d.shape}</div><div style={{fontSize:11,color:T.textSecondary}}>{d.color} В· {d.clarity}</div><div style={{fontSize:16,fontWeight:700,color:T.text,marginTop:6}}>${d.price.toLocaleString()}</div></div>)}</div>}
     </div></div>;};
 
 // ─── Settings ───────────────────────────────────────────────────────────
@@ -315,35 +384,67 @@ const Sett=({onClose,tn,setTn,ln,setLn})=>{const{T,t}=useApp();
 // MAIN
 // ═══════════════════════════════════════════════════════════════════════
 export default function DIAMCO(){
+  const [ALL_D,setALL_D]=useState([]);
   const[tn,setTn]=useState("dark"),[ln,setLn]=useState("en");
+  const [,_refresh]=useState(0);
+  
+  useEffect(()=>{
+    // price_client calculation based on Rap discount difference
+    // Supplier gives e.g. -42% from Rap → price in DB
+    // We sell client at (supplier_disc - margin)% from Rap
+    // Margin: ≤2ct=7%, 2–6ct=5%, 6+ct=3%  |  Fancy Color: supplier_price × 1.30
+    const calcClientPrice=(d)=>{
+      if(d.rap_price&&d.disc_pct!=null){
+        const rapTotal=d.rap_price*d.carat;
+        const discAbs=Math.abs(d.disc_pct);
+        const margin=d.carat<=2?0.07:d.carat<=6?0.05:0.03;
+        const clientDisc=Math.max(0,discAbs-margin);
+        return Math.round(rapTotal*(1-clientDisc));
+      }
+      // Fancy Color or no Rap data → use stored price_client, fallback price×1.30
+      return d.price_client||Math.round((d.price||0)*1.30);
+    };
+    supabase.from("diamonds").select("*").eq("available",true).then(({data})=>{
+      if(data)setALL_D(data.map(d=>{
+        const pc=calcClientPrice(d);
+        return{...d,
+          price:pc,
+          pricePerCt:pc&&d.carat?Math.round(pc/d.carat):0,
+          discount:d.disc_pct!=null?+(d.disc_pct*100).toFixed(1):0,
+          lastPriceChange:0,dealer:"DIAMCO",natural:true,
+          daysListed:0,source:"DIAMCO",city:d.city||"Dubai",
+          certNumber:d.cert_number||d.certNumber||""};
+      }));
+    });
+  },[]);
   const T=THEMES[tn],t=LANGS[ln],isRTL=t.dir==="rtl";
   const[splash,setSplash]=useState(true),[welcome,setWelcome]=useState(false),[splashFade,setSplashFade]=useState(false),[welcomeFade,setWelcomeFade]=useState(false);
   const[pg,setPg]=useState("search"),[usr,setUsr]=useState(null),[showAuth,setShowAuth]=useState(false),[authMode,setAuthMode]=useState("login"),[showSett,setShowSett]=useState(false),
     [favs,setFavs]=useState(new Set()),[cmpList,setCmpList]=useState([]),[showCmp,setShowCmp]=useState(false),
     [selD,setSelD]=useState(null),[sTxt,setSTxt]=useState(""),[mobMenu,setMobMenu]=useState(false),[mobFilt,setMobFilt]=useState(false);
   const[fSh,setFSh]=useState([]),[fCo,setFCo]=useState([]),[fCl,setFCl]=useState([]),[fCu,setFCu]=useState([]),
-    [fCt,setFCt]=useState([.2,6]),[fPr,setFPr]=useState([0,150000]),[fLb,setFLb]=useState([]),[fSr,setFSr]=useState([]),
-    [sort,setSort]=useState("price-asc"),[showF,setShowF]=useState(true),[natOnly,setNatOnly]=useState(true);
+    [fCt,setFCt]=useState([.2,20]),[fPr,setFPr]=useState([0,1000000]),[fLb,setFLb]=useState([]),[fSr,setFSr]=useState([]),
+    [sort,setSort]=useState("price-asc"),[showF,setShowF]=useState(true);
 
+  const[cookieOk,setCookieOk]=useState(()=>!!localStorage.getItem("diamco_cookie"));
   const togFav=useCallback(id=>{setFavs(p=>{const n=new Set(p);n.has(id)?n.delete(id):n.add(id);return n;});if(usr)setUsr(p=>{const f=p.favorites||[];return{...p,favorites:f.includes(id)?f.filter(x=>x!==id):[...f,id]};});},[usr]);
+  const safeFav=useCallback(id=>{if(!usr){setAuthMode("login");setShowAuth(true);return;}togFav(id);},[usr,togFav]);
   const togCmp=useCallback(d=>setCmpList(p=>p.find(x=>x.id===d.id)?p.filter(x=>x.id!==d.id):p.length<4?[...p,d]:p),[]);
 
-  const filtered=useMemo(()=>{let r=ALL_D.filter(d=>{if(natOnly&&!d.natural)return false;if(fSh.length&&!fSh.includes(d.shape))return false;if(fCo.length&&!fCo.includes(d.color))return false;if(fCl.length&&!fCl.includes(d.clarity))return false;if(fCu.length&&!fCu.includes(d.cut))return false;if(fLb.length&&!fLb.includes(d.lab))return false;if(fSr.length&&!fSr.includes(d.source))return false;if(d.carat<fCt[0]||d.carat>fCt[1])return false;if(d.price<fPr[0]||d.price>fPr[1])return false;if(sTxt){const q=sTxt.toLowerCase();return d.id.toLowerCase().includes(q)||d.dealer.toLowerCase().includes(q)||d.shape.toLowerCase().includes(q)||d.city.toLowerCase().includes(q);}return true;});const[k,dir]=sort.split("-");r.sort((a,b)=>dir==="asc"?a[k]-b[k]:b[k]-a[k]);return r;},[fSh,fCo,fCl,fCu,fLb,fSr,fCt,fPr,sort,sTxt,natOnly]);
+  const filtered=useMemo(()=>{let r=ALL_D.filter(d=>{if(fSh.length&&!fSh.includes(d.shape))return false;if(fCo.length&&!fCo.includes(d.color))return false;if(fCl.length&&!fCl.includes(d.clarity))return false;if(fCu.length&&!fCu.includes(d.cut))return false;if(fLb.length&&!fLb.includes(d.lab))return false;if(d.carat<fCt[0]||d.carat>fCt[1])return false;if(d.price<fPr[0]||d.price>fPr[1])return false;if(sTxt){const q=sTxt.toLowerCase();return d.id.toLowerCase().includes(q)||(d.code||"").toLowerCase().includes(q)||d.dealer.toLowerCase().includes(q)||d.shape.toLowerCase().includes(q)||(d.city||"").toLowerCase().includes(q)||d.color.toLowerCase().includes(q)||d.clarity.toLowerCase().includes(q)||(d.certNumber||"").toLowerCase().includes(q);}return true;});const[k,dir]=sort.split("-");r.sort((a,b)=>dir==="asc"?a[k]-b[k]:b[k]-a[k]);return r;},[fSh,fCo,fCl,fCu,fLb,fCt,fPr,sort,sTxt]);
 
-  const saveSrch=()=>{if(!usr){setShowAuth(true);return;}const desc=[fSh.length?fSh.join(","):"",fCt[0]!==.2||fCt[1]!==6?`${fCt[0]}-${fCt[1]}ct`:""].filter(Boolean).join(" · ")||t.catalog;setUsr(p=>({...p,savedSearches:[...(p.savedSearches||[]),{name:`#${(p.savedSearches?.length||0)+1}`,description:desc,filters:{fSh,fCo,fCl,fCu,fCt,fPr,fLb,fSr},resultCount:filtered.length}]}));};
-  const mkAlert=()=>{if(!usr){setShowAuth(true);return;}const desc=[fSh.length?fSh.join(","):""].filter(Boolean).join(" · ")||t.catalog;setUsr(p=>({...p,alerts:[...(p.alerts||[]),{description:desc,targetPrice:filtered.length?Math.round(filtered.reduce((s,d)=>s+d.price,0)/filtered.length*.9):5000,triggered:Math.random()>.7}]}));};
-  const loadSrch=s=>{if(s?.filters){const f=s.filters;setFSh(f.fSh||[]);setFCo(f.fCo||[]);setFCl(f.fCl||[]);setFCu(f.fCu||[]);setFCt(f.fCt||[.2,6]);setFPr(f.fPr||[0,150000]);setFLb(f.fLb||[]);setFSr(f.fSr||[]);}setPg("search");};
-  const reset=()=>{setFSh([]);setFCo([]);setFCl([]);setFCu([]);setFCt([.2,6]);setFPr([0,150000]);setFLb([]);setFSr([]);};
+  const saveSrch=()=>{if(!usr){setShowAuth(true);return;}const desc=[fSh.length?fSh.join(","):"",fCt[0]!==.2||fCt[1]!==6?`${fCt[0]}-${fCt[1]}ct`:""].filter(Boolean).join(" В· ")||t.catalog;setUsr(p=>({...p,savedSearches:[...(p.savedSearches||[]),{name:`#${(p.savedSearches?.length||0)+1}`,description:desc,filters:{fSh,fCo,fCl,fCu,fCt,fPr,fLb,fSr},resultCount:filtered.length}]}));};
+  const mkAlert=()=>{if(!usr){setShowAuth(true);return;}const desc=[fSh.length?fSh.join(","):""].filter(Boolean).join(" В· ")||t.catalog;setUsr(p=>({...p,alerts:[...(p.alerts||[]),{description:desc,targetPrice:filtered.length?Math.round(filtered.reduce((s,d)=>s+d.price,0)/filtered.length*.9):5000,triggered:Math.random()>.7}]}));};
+  const loadSrch=s=>{if(s?.filters){const f=s.filters;setFSh(f.fSh||[]);setFCo(f.fCo||[]);setFCl(f.fCl||[]);setFCu(f.fCu||[]);setFCt(f.fCt||[.2,20]);setFPr(f.fPr||[0,1000000]);setFLb(f.fLb||[]);setFSr(f.fSr||[]);}setPg("search");};
+  const reset=()=>{setFSh([]);setFCo([]);setFCl([]);setFCu([]);setFCt([.2,20]);setFPr([0,1000000]);setFLb([]);setFSr([]);};
 
   const nav=[{id:"search",lb:t.catalog,ic:I.search},{id:"calculator",lb:t.calculator,ic:I.calc},{id:"analytics",lb:t.analytics,ic:I.chart}];
 
   const Filt=()=><><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}><span style={{fontSize:15,fontWeight:700,color:T.text}}>{t.filters}</span><button onClick={reset} style={{background:"none",border:"none",color:T.textMuted,cursor:"pointer",fontSize:11,fontFamily:"'Outfit',sans-serif"}}>{t.resetAll}</button></div>
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,padding:"8px 12px",borderRadius:10,background:natOnly?T.chipActive:"transparent",border:`1px solid ${natOnly?T.ice:T.border}`,cursor:"pointer"}} onClick={()=>setNatOnly(!natOnly)}><span style={{fontSize:12,color:natOnly?T.text:T.textMuted,fontWeight:500}}>{t.naturalOnly}</span><div style={{width:36,height:20,borderRadius:10,background:natOnly?T.ice:`${T.ice}30`,position:"relative"}}><div style={{width:16,height:16,borderRadius:"50%",background:"#fff",position:"absolute",top:2,[isRTL?"right":"left"]:natOnly?18:2,transition:"all .2s"}}/></div></div>
-    <Chips label={t.shape} opts={SHAPES} sel={fSh} onChange={setFSh}/><Range label={t.carat} min={.2} max={6} step={.1} value={fCt} onChange={setFCt} fmt={v=>`${v}ct`}/>
+    <Chips label={t.shape} opts={SHAPES} sel={fSh} onChange={setFSh}/><Range label={t.carat} min={.2} max={20} step={.1} value={fCt} onChange={setFCt} fmt={v=>`${v}ct`}/>
     <Chips label={t.color} opts={COLORS_LIST} sel={fCo} onChange={setFCo} tip={t.colorTip}/><Chips label={t.clarity} opts={CLARITIES} sel={fCl} onChange={setFCl} tip={t.clarityTip}/>
     <Chips label={t.cut} opts={CUTS} sel={fCu} onChange={setFCu}/><Chips label={t.lab} opts={LABS} sel={fLb} onChange={setFLb}/>
-    <Range label={t.price} min={0} max={150000} step={500} value={fPr} onChange={setFPr} fmt={v=>`$${(v/1000).toFixed(0)}k`}/>
-    <Chips label={t.source} opts={SRCS.map(s=>s.name)} sel={fSr} onChange={setFSr}/></>;
+    <Range label={t.price} min={0} max={1000000} step={5000} value={fPr} onChange={setFPr} fmt={v=>`$${(v/1000).toFixed(0)}k`}/></>;
 
   const enterWelcome=()=>{setSplashFade(true);setTimeout(()=>{setSplash(false);setWelcome(true);},500);};
   const enterAsGuest=()=>{setWelcomeFade(true);setTimeout(()=>setWelcome(false),500);};
@@ -376,17 +477,19 @@ export default function DIAMCO(){
         {ln==="ru"?"Войти как гость →":ln==="ar"?"الدخول كضيف ←":"Continue as guest →"}
       </button>
     </div>
-    <div style={{position:"absolute",bottom:24,fontSize:11,color:"#c8d5dd",animation:"fadeUp .6s ease-out .5s both"}}>© 2025 DIAMCO</div>
+    <div style={{position:"absolute",bottom:24,fontSize:11,color:"#c8d5dd",animation:"fadeUp .6s ease-out .5s both"}}>В© 2025 DIAMCO</div>
   </div>;
 
-  return<Ctx.Provider value={{T,t,isRTL}}>
+  return<Ctx.Provider value={{T,t,isRTL,ALL_D}}>
   <div dir={isRTL?"rtl":"ltr"} style={{minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"'Outfit',sans-serif",transition:"background .3s,color .3s"}}>
     <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:${T.scrollThumb};border-radius:3px;}select option{background:${T.bgModal};color:${T.text};}::selection{background:rgba(126,184,216,.3);}input:focus,select:focus{outline:none;border-color:${T.ice}!important;}@media(max-width:768px){.dsk{display:none!important;}.mf{grid-template-columns:1fr!important;}.mp{padding:12px!important;}.calc-grid{grid-template-columns:1fr!important;}.stats-grid{grid-template-columns:1fr 1fr!important;}.edu-grid{grid-template-columns:1fr 1fr!important;}.an-grid{grid-template-columns:1fr!important;}.prof-grid{grid-template-columns:1fr!important;}.foot-grid{grid-template-columns:1fr!important;text-align:center;}}@media(min-width:769px){.mob{display:none!important;}}`}</style>
 
     <header style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:`1px solid ${T.border}`,background:T.headerBg,backdropFilter:"blur(20px)",position:"sticky",top:0,zIndex:800,gap:6,flexWrap:"nowrap"}}>
       <div style={{display:"flex",alignItems:"center",gap:6,minWidth:0,flexShrink:0}}><button className="mob" onClick={()=>setMobMenu(!mobMenu)} style={{background:"none",border:"none",color:T.ice,cursor:"pointer",padding:4,display:"flex"}}>{I.menu}</button>
-        <svg width={24} height={20} viewBox="0 0 100 75" fill="none"><defs><linearGradient id="hdg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={T.iceLight||T.ice}/><stop offset="100%" stopColor={T.ice}/></linearGradient></defs><g stroke="url(#hdg)" strokeWidth="2.5" strokeLinejoin="round"><path d="M50 72L5 30 18 7h64l13 23L50 72z"/><path d="M5 30h90"/><path d="M50 72L37 30M50 72L63 30"/><path d="M18 7L37 30M82 7L63 30"/><path d="M50 7v23"/><path d="M18 7l19 23h26l19-23" opacity=".35"/></g></svg>
-        <span style={{fontSize:18,fontWeight:700,fontFamily:"'Playfair Display',serif",color:T.text,letterSpacing:".04em"}}>DIAMCO</span></div>
+        <button onClick={()=>{setPg("search");setMobMenu(false);}} style={{display:"flex",alignItems:"center",gap:7,background:"none",border:"none",cursor:"pointer",padding:"4px 6px",borderRadius:10,transition:"background .2s"}} onMouseEnter={e=>e.currentTarget.style.background=T.accentGlow} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+          <svg width={24} height={20} viewBox="0 0 100 75" fill="none"><defs><linearGradient id="hdg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={T.iceLight||T.ice}/><stop offset="100%" stopColor={T.ice}/></linearGradient></defs><g stroke="url(#hdg)" strokeWidth="2.5" strokeLinejoin="round"><path d="M50 72L5 30 18 7h64l13 23L50 72z"/><path d="M5 30h90"/><path d="M50 72L37 30M50 72L63 30"/><path d="M18 7L37 30M82 7L63 30"/><path d="M50 7v23"/><path d="M18 7l19 23h26l19-23" opacity=".35"/></g></svg>
+          <span style={{fontSize:18,fontWeight:700,fontFamily:"'Playfair Display',serif",color:T.text,letterSpacing:".04em"}}>DIAMCO</span>
+        </button></div>
       <nav className="dsk" style={{display:"flex",gap:2}}>{nav.map(n=><button key={n.id} onClick={()=>setPg(n.id)} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 16px",borderRadius:10,border:"none",cursor:"pointer",fontSize:13,fontWeight:500,background:pg===n.id?T.chipActive:"transparent",color:pg===n.id?T.text:T.textMuted,fontFamily:"'Outfit',sans-serif"}}>{n.ic}{n.lb}</button>)}</nav>
       <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
         {cmpList.length>0&&<button className="dsk" onClick={()=>setShowCmp(!showCmp)} style={{display:"flex",alignItems:"center",gap:5,padding:"7px 14px",borderRadius:10,background:"rgba(52,152,219,.1)",border:"1px solid rgba(52,152,219,.2)",color:"#3498db",cursor:"pointer",fontSize:12,fontWeight:600}}>{I.cmp} {cmpList.length}</button>}
@@ -407,7 +510,7 @@ export default function DIAMCO(){
         {showF&&<aside className="dsk" style={{width:260,flexShrink:0,background:T.bgCard,borderRadius:20,padding:22,border:`1px solid ${T.border}`,alignSelf:"flex-start",position:"sticky",top:72,maxHeight:"calc(100vh - 96px)",overflowY:"auto"}}><Filt/></aside>}
         {mobFilt&&<div className="mob" style={{position:"fixed",inset:0,background:T.name==="dark"?"rgba(6,6,16,.95)":"rgba(244,247,250,.98)",backdropFilter:"blur(20px)",zIndex:850,padding:24,overflowY:"auto"}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:16}}><span style={{fontSize:18,fontWeight:700,color:T.text}}>{t.filters}</span><Btn small onClick={()=>setMobFilt(false)}>OK ({filtered.length})</Btn></div><Filt/></div>}
         <div style={{flex:1,minWidth:0}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:10}}>
+        <div style={{position:"sticky",top:64,zIndex:700,background:T.bg,paddingTop:8,paddingBottom:10,marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,borderBottom:`1px solid ${T.border}`}}>
             <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
               <button className="dsk" onClick={()=>setShowF(!showF)} style={{background:T.accentGlow,border:`1px solid ${T.border}`,color:T.ice,padding:"7px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:500,display:"flex",alignItems:"center",gap:4,fontFamily:"'Outfit',sans-serif"}}>{I.filter} {t.filters}</button>
               <button className="mob" onClick={()=>setMobFilt(true)} style={{background:T.accentGlow,border:`1px solid ${T.border}`,color:T.ice,padding:"7px 12px",borderRadius:10,cursor:"pointer",fontSize:12,fontWeight:500,display:"flex",alignItems:"center",gap:4,fontFamily:"'Outfit',sans-serif"}}>{I.filter} {t.filters}</button>
@@ -417,7 +520,7 @@ export default function DIAMCO(){
             <div style={{display:"flex",gap:8,alignItems:"center"}}><div style={{position:"relative"}}><input placeholder={t.searchPH} value={sTxt} onChange={e=>setSTxt(e.target.value)} style={{padding:`8px 12px 8px ${isRTL?"12px":"34px"}`,paddingRight:isRTL?"34px":"12px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bgInput,color:T.text,fontSize:12,width:200,fontFamily:"'Outfit',sans-serif"}}/><span style={{position:"absolute",[isRTL?"right":"left"]:10,top:"50%",transform:"translateY(-50%)",color:T.textDim}}>{I.search}</span></div>
               <select value={sort} onChange={e=>setSort(e.target.value)} style={{padding:"8px 10px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bgInput,color:T.text,fontSize:12,cursor:"pointer",fontFamily:"'Outfit',sans-serif"}}><option value="price-asc">{t.priceAsc}</option><option value="price-desc">{t.priceDesc}</option><option value="carat-desc">{t.caratDesc}</option><option value="carat-asc">{t.caratAsc}</option><option value="pricePerCt-asc">{t.pctAsc}</option><option value="pricePerCt-desc">{t.pctDesc}</option></select></div></div>
           <div className="mf" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>
-            {filtered.slice(0,60).map(d=><Card key={d.id} d={d} onFav={togFav} isFav={favs.has(d.id)} onCmp={togCmp} isCmp={!!cmpList.find(x=>x.id===d.id)} onSel={setSelD}/>)}</div>
+            {filtered.slice(0,60).map(d=><Card key={d.id} d={d} onFav={safeFav} isFav={favs.has(d.id)} onCmp={togCmp} isCmp={!!cmpList.find(x=>x.id===d.id)} onSel={setSelD}/>)}</div>
           {filtered.length>60&&<div style={{textAlign:"center",padding:"20px 0",color:T.textMuted,fontSize:12}}>{t.showing} 60 {t.of} {filtered.length}</div>}
           {!filtered.length&&<div style={{textAlign:"center",padding:"50px 0"}}><div style={{fontSize:18,color:T.text,fontFamily:"'Playfair Display',serif"}}>{t.noMatch}</div><div style={{fontSize:13,color:T.textSecondary,marginTop:6}}>{t.adjustF} <button onClick={reset} style={{background:"none",border:"none",color:T.ice,cursor:"pointer",textDecoration:"underline"}}>{t.resetAll}</button></div></div>}
         </div></div>}
@@ -456,15 +559,29 @@ export default function DIAMCO(){
           <button style={{background:"none",border:"none",color:T.textDim,cursor:"pointer",fontSize:11,fontFamily:"'Outfit',sans-serif"}}>{t.footerSupport}</button>
         </div>
       </div>
+      <div style={{marginTop:12,padding:"10px 16px",borderRadius:10,background:`${T.accentGlow}`,border:`1px solid ${T.border}`,display:"flex",flexWrap:"wrap",gap:16,justifyContent:"center"}}>
+        <span style={{fontSize:10,color:T.textMuted,textAlign:"center"}}>♦ All diamonds are conflict-free and certified under the <strong style={{color:T.textSecondary}}>Kimberley Process</strong> scheme</span>
+        <span style={{fontSize:10,color:T.textMuted,textAlign:"center"}}>· Prices are indicative and subject to change · For informational purposes only</span>
+        <span style={{fontSize:10,color:T.textMuted,textAlign:"center"}}>· DIAMCO operates in compliance with UAE PDPL 2022 · DMCC licensed entity</span>
+      </div>
     </footer>
 
     {showCmp&&<div style={{position:"fixed",bottom:0,left:0,right:0,background:T.bgModal,borderTop:`1px solid ${T.borderHover}`,zIndex:900,maxHeight:"55vh",overflowY:"auto",padding:"20px 24px"}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}><span style={{fontSize:16,fontWeight:700,color:T.text}}>{t.compare} ({cmpList.length})</span><Btn small onClick={()=>setShowCmp(false)}>{t.close}</Btn></div>
       <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}><thead><tr><th style={{textAlign:"start",padding:"6px 10px",color:T.textMuted,fontSize:10}}>{t.spec}</th>{cmpList.map(d=><th key={d.id} style={{textAlign:"center",padding:"6px 10px",color:T.text}}>{d.id}<button onClick={()=>setCmpList(p=>p.filter(x=>x.id!==d.id))} style={{marginLeft:6,background:"none",border:"none",color:T.danger,cursor:"pointer"}}>✕</button></th>)}</tr></thead>
         <tbody>{["shape","carat","color","clarity","cut","price","pricePerCt","discount","source"].map(f=><tr key={f} style={{borderTop:`1px solid ${T.border}`}}><td style={{padding:"6px 10px",color:T.textSecondary}}>{f}</td>{cmpList.map(d=><td key={d.id} style={{textAlign:"center",padding:"6px 10px",color:T.text}}>{f==="price"||f==="pricePerCt"?`$${d[f].toLocaleString()}`:f==="discount"?d[f]+"%":d[f]}</td>)}</tr>)}</tbody></table></div>}
 
-    {selD&&<Detail d={selD} onClose={()=>setSelD(null)} onFav={togFav} isFav={favs.has(selD?.id)}/>}
+    {selD&&<Detail d={selD} onClose={()=>setSelD(null)} onFav={safeFav} isFav={favs.has(selD?.id)} usr={usr} onNeedAuth={()=>{setAuthMode("login");setShowAuth(true);}}/>}
     {showAuth&&<Auth onClose={()=>setShowAuth(false)} onAuth={u=>{setUsr(u);setShowAuth(false);}} initMode={authMode}/>}
     {showSett&&<Sett onClose={()=>setShowSett(false)} tn={tn} setTn={setTn} ln={ln} setLn={setLn}/>}
+
+    {/* Cookie consent */}
+    {!cookieOk&&<div style={{position:"fixed",bottom:0,left:0,right:0,background:T.bgModal,borderTop:`1px solid ${T.border}`,zIndex:1100,padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12,backdropFilter:"blur(20px)"}}>
+      <span style={{fontSize:12,color:T.textSecondary,maxWidth:600}}>🍪 We use cookies to improve your experience. By continuing, you agree to our <button style={{background:"none",border:"none",color:T.ice,cursor:"pointer",fontSize:12,textDecoration:"underline",padding:0}}>Privacy Policy</button> and <button style={{background:"none",border:"none",color:T.ice,cursor:"pointer",fontSize:12,textDecoration:"underline",padding:0}}>Terms of Use</button>.</span>
+      <div style={{display:"flex",gap:8}}>
+          <button onClick={()=>{localStorage.setItem("diamco_cookie","accepted");setCookieOk(true);}} style={{padding:"8px 20px",borderRadius:8,background:T.gradient,border:"none",color:"#fff",cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:"'Outfit',sans-serif"}}>Accept</button>
+          <button onClick={()=>{localStorage.setItem("diamco_cookie","declined");setCookieOk(true);}} style={{padding:"8px 14px",borderRadius:8,background:"transparent",border:`1px solid ${T.border}`,color:T.textMuted,cursor:"pointer",fontSize:12,fontFamily:"'Outfit',sans-serif"}}>Decline</button>
+        </div>
+    </div>}
 
     {/* DIAMCO Watermark — always visible for screenshots */}
     <div style={{position:"fixed",bottom:12,[isRTL?"left":"right"]:16,display:"flex",alignItems:"center",gap:5,opacity:.35,pointerEvents:"none",zIndex:700}}>
@@ -473,3 +590,8 @@ export default function DIAMCO(){
     </div>
   </div></Ctx.Provider>;
 }
+
+
+
+
+

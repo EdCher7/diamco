@@ -4,3 +4,5 @@ dist/
 .netlify/
 *.local
 .DS_Store
+
+.env.local
