@@ -218,19 +218,28 @@ const RangeField=({val,fmt,onCommit})=>{
 const Range=({label,min,max,value:v,onChange,step=.1,fmt=x=>x})=>{
   const{T}=useApp();
   const timerRef=useRef(null);
+  const intervalRef=useRef(null);
   const clamp=(val,lo,hi)=>Math.round(Math.min(Math.max(val,lo),hi)*100)/100;
-  const stopHold=()=>{clearTimeout(timerRef.current);clearInterval(timerRef.current);};
+  const stopHold=()=>{clearTimeout(timerRef.current);clearInterval(intervalRef.current);timerRef.current=null;intervalRef.current=null;};
   const startHold=(idx,delta)=>{
     const move=()=>onChange(p=>{const nv=[...p];nv[idx]=clamp(nv[idx]+delta,idx===0?min:p[0]+step,idx===1?max:p[1]-step);return nv;});
-    move();timerRef.current=setTimeout(()=>{timerRef.current=setInterval(move,60);},300);
+    move();
+    timerRef.current=setTimeout(()=>{intervalRef.current=setInterval(move,80);},400);
   };
   useEffect(()=>()=>stopHold(),[]);
-  const BtnPM=({idx,up})=><button type="button"
-    onMouseDown={()=>startHold(idx,up?step:-step)} onMouseUp={stopHold} onMouseLeave={stopHold}
-    onTouchStart={e=>{e.preventDefault();e.stopPropagation();startHold(idx,up?step:-step);}} onTouchEnd={e=>{e.preventDefault();stopHold();}} onTouchCancel={stopHold}
-    style={{width:32,height:18,border:`1px solid ${T.border}`,borderBottom:up?`1px solid ${T.border}`:"none",borderRadius:up?"4px 4px 0 0":"0 0 4px 4px",background:T.accentGlow,color:T.ice,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,userSelect:"none",WebkitUserSelect:"none",touchAction:"none"}}>
-    <svg width="8" height="5" viewBox="0 0 8 5" fill="none"><path d={up?"M1 4l3-3 3 3":"M1 1l3 3 3-3"} stroke={T.ice} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-  </button>;
+  const BtnPM=({idx,up})=>{
+    const delta=up?step:-step;
+    return<button type="button"
+      onMouseDown={()=>startHold(idx,delta)}
+      onMouseUp={stopHold}
+      onMouseLeave={stopHold}
+      onTouchStart={e=>{e.preventDefault();e.stopPropagation();startHold(idx,delta);}}
+      onTouchEnd={e=>{e.preventDefault();stopHold();}}
+      onTouchCancel={stopHold}
+      style={{width:36,height:22,border:`1px solid ${T.border}`,borderBottom:up?`1px solid ${T.border}`:"none",borderRadius:up?"4px 4px 0 0":"0 0 4px 4px",background:T.accentGlow,color:T.ice,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,userSelect:"none",WebkitUserSelect:"none",touchAction:"none"}}>
+      <svg width="8" height="5" viewBox="0 0 8 5" fill="none"><path d={up?"M1 4l3-3 3 3":"M1 1l3 3 3-3"} stroke={T.ice} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    </button>;
+  };
   return<div style={{marginBottom:20}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
       <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",color:T.ice}}>{label}</span>
@@ -256,7 +265,7 @@ const Range=({label,min,max,value:v,onChange,step=.1,fmt=x=>x})=>{
 const VS=({d})=>{const{T,t}=useApp();const ci=COLORS_LIST.indexOf(d.color),cli=CLARITIES.indexOf(d.clarity),cui=CUTS.indexOf(d.cut);const sc=Math.max(1,Math.min(10,Math.round(10-(ci*.3+cli*.3+cui*.8)+(d.discount<-25?2:0))));const col=sc>=7?T.success:sc>=4?T.warning:T.danger;return<Tip text={`${t.value} ${sc}/10 — ${sc>=7?t.excellentDeal:sc>=4?t.fairPrice:t.premium}`}><span style={{display:"inline-flex",alignItems:"center",gap:3,padding:"2px 8px",borderRadius:16,background:`${col}18`,color:col,fontSize:11,fontWeight:700}}>{I.star(true)} {sc}/10</span></Tip>;};
 
 // ─── Card ───────────────────────────────────────────────────────────────
-const Card=({d,onFav,isFav,onCmp,isCmp,onSel})=>{const[h,setH]=useState(false);const{T,t}=useApp();
+const Card=({d,onFav,isFav,onCmp,isCmp,onSel})=>{const[h,setH]=useState(false);const{T,t,fmtPrice}=useApp();
   const hasPhoto=d.image_url||d.photo_url;
   return<div onClick={()=>onSel(d)} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)} style={{background:h?T.bgHover:T.bgCard,borderRadius:16,overflow:"hidden",cursor:"pointer",border:`1px solid ${h?T.borderHover:T.border}`,transition:"all .25s",transform:h?"translateY(-3px)":"none",backdropFilter:"blur(12px)",boxShadow:h?`0 12px 40px ${T.shadow}`:"none"}}>
   {/* Photo / Shape icon area */}
@@ -286,19 +295,19 @@ const Card=({d,onFav,isFav,onCmp,isCmp,onSel})=>{const[h,setH]=useState(false);c
     <div style={{fontSize:16,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif",marginBottom:2}}>{d.carat} ct {d.shape}</div>
     <div style={{fontSize:12,color:T.textSecondary,marginBottom:12}}>{d.color} · {d.clarity} · {d.cut}</div>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}}>
-      <div><div style={{fontSize:22,fontWeight:700,color:T.text}}>${d.price.toLocaleString()}</div><div style={{fontSize:11,color:T.textMuted,marginTop:2}}>${d.pricePerCt.toLocaleString()}{t.perCt}{d.discount!==0?<span style={{marginLeft:4,color:d.discount<-25?T.success:T.warning}}> · {d.discount}%</span>:<span style={{marginLeft:4,color:T.textMuted,fontStyle:"italic"}}> · Fancy</span>}</div></div>
+      <div><div style={{fontSize:22,fontWeight:700,color:T.text}}>{fmtPrice(d.price)}</div><div style={{fontSize:11,color:T.textMuted,marginTop:2}}>{fmtPrice(d.pricePerCt)}{t.perCt}{d.discount!==0?<span style={{marginLeft:4,color:d.discount<-25?T.success:T.warning}}> · {d.discount}%</span>:<span style={{marginLeft:4,color:T.textMuted,fontStyle:"italic"}}> · Fancy</span>}</div></div>
       <VS d={d}/>
     </div>
   </div></div>;};
 
 // ─── Detail Modal ───────────────────────────────────────────────────────
-const Detail=({d,onClose,onFav,isFav,usr,onNeedAuth})=>{const{T,t}=useApp();const[copied,setCopied]=useState(false);if(!d)return null;
+const Detail=({d,onClose,onFav,isFav,usr,onNeedAuth})=>{const{T,t,fmtPrice}=useApp();const[copied,setCopied]=useState(false);if(!d)return null;
   const sp=[[t.shape,d.shape],[t.carat,d.carat],[t.color,d.color],[t.clarity,d.clarity],[t.cut,d.cut],[t.polish,d.polish],[t.symmetry,d.symmetry],[t.fluorescence,d.fluorescence],[t.lab,d.lab],[t.certNum,d.certNumber],[t.depth,d.depth+"%"],[t.table,d.table+"%"],[t.measurements,d.measurements],[t.listed,d.daysListed+" "+t.daysAgo]].filter(([,v])=>v!==undefined&&v!==null&&v!=="");
   const doShare=async()=>{const url=`${window.location.origin}?d=${d.code||d.id}`;const txt=`${d.carat}ct ${d.shape} | ${d.color} ${d.clarity} | $${d.price.toLocaleString()} — DIAMCO`;if(navigator.share){try{await navigator.share({title:`DIAMCO — ${d.carat}ct ${d.shape}`,text:txt,url});}catch(e){}}else{navigator.clipboard?.writeText(url).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);});}};
   return<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",backdropFilter:"blur(12px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:T.bgModal,borderRadius:24,padding:"28px 32px",maxWidth:640,width:"100%",border:`1px solid ${T.border}`,maxHeight:"90vh",overflowY:"auto"}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}><div><div style={{fontSize:26,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{d.carat} ct {d.shape}</div><div style={{fontSize:13,color:T.textMuted,marginTop:4}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,color:T.ice,background:T.accentGlow,padding:"2px 8px",borderRadius:5,border:`1px solid ${T.border}`,fontSize:12}}>{d.code||d.id}</span><span style={{marginLeft:8,color:T.textMuted}}>{d.lab} #{d.certNumber}</span></div></div><button onClick={onClose} style={{background:T.accentGlow,border:"none",color:T.ice,width:36,height:36,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>{I.x}</button></div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:24,background:T.accentGlow,borderRadius:16,padding:20,border:`1px solid ${T.border}`}}>{sp.map(([l,v])=><div key={l}><div style={{fontSize:9,color:T.textMuted,textTransform:"uppercase",letterSpacing:".12em",marginBottom:2}}>{l}</div><div style={{fontSize:13,color:T.text,fontWeight:600}}>{v}</div></div>)}</div>
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:`linear-gradient(135deg,${T.accentGlow},transparent)`,borderRadius:16,padding:24,marginBottom:20,border:`1px solid ${T.border}`}}><div><div style={{fontSize:10,color:T.textMuted,textTransform:"uppercase",marginBottom:4}}>{t.totalPrice}</div><div style={{fontSize:36,fontWeight:700,color:T.text}}>${d.price.toLocaleString()}</div><div style={{fontSize:13,color:T.textSecondary}}>${d.pricePerCt.toLocaleString()}{t.perCt}</div></div><div style={{textAlign:"right"}}><VS d={d}/><div style={{fontSize:12,color:T.textSecondary,marginTop:8}}>{d.dealer}</div><div style={{fontSize:11,color:T.textMuted}}>{d.city}</div></div></div>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:`linear-gradient(135deg,${T.accentGlow},transparent)`,borderRadius:16,padding:24,marginBottom:20,border:`1px solid ${T.border}`}}><div><div style={{fontSize:10,color:T.textMuted,textTransform:"uppercase",marginBottom:4}}>{t.totalPrice}</div><div style={{fontSize:36,fontWeight:700,color:T.text}}>{fmtPrice(d.price)}</div><div style={{fontSize:13,color:T.textSecondary}}>{fmtPrice(d.pricePerCt)}{t.perCt}</div></div><div style={{textAlign:"right"}}><VS d={d}/><div style={{fontSize:12,color:T.textSecondary,marginTop:8}}>{d.dealer}</div><div style={{fontSize:11,color:T.textMuted}}>{d.city}</div></div></div>
     <div style={{display:"flex",gap:10}}><Btn primary style={{flex:1,justifyContent:"center",padding:"14px"}}>{t.contactDealer}</Btn>
       <Btn onClick={()=>onFav(d.id)}>{I.heart(isFav)} {isFav?t.saved:t.save}</Btn>
       <Btn onClick={doShare}>{I.ext} {copied?"Copied!":t.share}</Btn>
@@ -386,7 +395,10 @@ const Sett=({onClose,tn,setTn,ln,setLn})=>{const{T,t}=useApp();
 // ═══════════════════════════════════════════════════════════════════════
 export default function DIAMCO(){
   const [ALL_D,setALL_D]=useState([]);
-  const[tn,setTn]=useState("dark"),[ln,setLn]=useState("en");
+  const[tn,setTn]=useState("dark"),[ln,setLn]=useState("en"),[cn,setCn]=useState("USD");
+  const RATES={USD:1,RUB:90,AED:3.67};
+  const SYMS={USD:"$",RUB:"₽",AED:"د.إ"};
+  const fmtPrice=(usd)=>{const v=Math.round(usd*RATES[cn]);return cn==="RUB"?`${v.toLocaleString()} ₽`:cn==="AED"?`${v.toLocaleString()} د.إ`:`$${v.toLocaleString()}`;};
   const [,_refresh]=useState(0);
   
   useEffect(()=>{
@@ -481,7 +493,7 @@ export default function DIAMCO(){
     <div style={{position:"absolute",bottom:24,fontSize:11,color:"#c8d5dd",animation:"fadeUp .6s ease-out .5s both"}}>В© 2025 DIAMCO</div>
   </div>;
 
-  return<Ctx.Provider value={{T,t,isRTL,ALL_D}}>
+  return<Ctx.Provider value={{T,t,isRTL,ALL_D,cn,setCn,fmtPrice,SYMS}}>
   <div dir={isRTL?"rtl":"ltr"} style={{minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"'Outfit',sans-serif",transition:"background .3s,color .3s"}}>
     <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:${T.scrollThumb};border-radius:3px;}select option{background:${T.bgModal};color:${T.text};}::selection{background:rgba(126,184,216,.3);}input:focus,select:focus{outline:none;border-color:${T.ice}!important;}@media(max-width:768px){.dsk{display:none!important;}.mf{grid-template-columns:1fr!important;}.mp{padding:12px!important;}.calc-grid{grid-template-columns:1fr!important;}.stats-grid{grid-template-columns:1fr 1fr!important;}.edu-grid{grid-template-columns:1fr 1fr!important;}.an-grid{grid-template-columns:1fr!important;}.prof-grid{grid-template-columns:1fr!important;}.foot-grid{grid-template-columns:1fr!important;text-align:center;}}@media(min-width:769px){.mob{display:none!important;}}`}</style>
 
@@ -495,6 +507,7 @@ export default function DIAMCO(){
       <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
         {cmpList.length>0&&<button className="dsk" onClick={()=>setShowCmp(!showCmp)} style={{display:"flex",alignItems:"center",gap:5,padding:"7px 14px",borderRadius:10,background:"rgba(52,152,219,.1)",border:"1px solid rgba(52,152,219,.2)",color:"#3498db",cursor:"pointer",fontSize:12,fontWeight:600}}>{I.cmp} {cmpList.length}</button>}
         <button className="dsk" onClick={()=>setShowSett(true)} style={{background:T.accentGlow,border:`1px solid ${T.border}`,color:T.ice,width:36,height:36,borderRadius:10,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>{I.gear}</button>
+        <div className="dsk" style={{display:"flex",gap:2,background:T.accentGlow,border:`1px solid ${T.border}`,borderRadius:10,padding:3}}>{["USD","RUB","AED"].map(c=><button key={c} onClick={()=>setCn(c)} style={{padding:"4px 8px",borderRadius:7,border:"none",background:cn===c?T.gradient:"transparent",color:cn===c?"#fff":T.textMuted,cursor:"pointer",fontSize:11,fontWeight:cn===c?700:400,fontFamily:"'Outfit',sans-serif"}}>{c}</button>)}</div>
         {usr?<button onClick={()=>setPg("profile")} style={{display:"flex",alignItems:"center",gap:6,padding:"7px 14px",borderRadius:10,background:pg==="profile"?T.chipActive:"transparent",border:`1px solid ${T.border}`,color:T.text,cursor:"pointer",fontSize:13,fontWeight:500}}><div style={{width:24,height:24,borderRadius:"50%",background:T.gradient,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff"}}>{(usr.name||"U")[0].toUpperCase()}</div><span className="dsk">{usr.name}</span></button>
         :<><Btn small onClick={()=>{setAuthMode("login");setShowAuth(true);}}>{t.signIn}</Btn><Btn primary small onClick={()=>{setAuthMode("register");setShowAuth(true);}}>{t.signUp}</Btn></>}
       </div></header>
