@@ -223,21 +223,15 @@ const Range=({label,min,max,value:v,onChange,step=.1,fmt=x=>x})=>{
   const stopHold=()=>{clearTimeout(timerRef.current);clearInterval(intervalRef.current);};
   const startHold=(idx,delta)=>{
     const move=()=>onChange(p=>{const nv=[...p];nv[idx]=clamp(nv[idx]+delta,idx===0?min:p[0]+step,idx===1?max:p[1]-step);return nv;});
-    move();
-    timerRef.current=setTimeout(()=>{intervalRef.current=setInterval(move,80);},400);
+    move();timerRef.current=setTimeout(()=>{intervalRef.current=setInterval(move,80);},400);
   };
   useEffect(()=>()=>stopHold(),[]);
-  const BtnPM=({idx,up})=>{
-    const delta=up?step:-step;
-    return<button type="button"
-      onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);startHold(idx,delta);}}
-      onPointerUp={stopHold}
-      onPointerCancel={stopHold}
-      onPointerLeave={stopHold}
-      style={{width:36,height:22,border:`1px solid ${T.border}`,borderBottom:up?`1px solid ${T.border}`:"none",borderRadius:up?"4px 4px 0 0":"0 0 4px 4px",background:T.accentGlow,color:T.ice,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,userSelect:"none",WebkitUserSelect:"none",touchAction:"none"}}>
-      <svg width="8" height="5" viewBox="0 0 8 5" fill="none"><path d={up?"M1 4l3-3 3 3":"M1 1l3 3 3-3"} stroke={T.ice} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-    </button>;
-  };
+  const BtnPM=({idx,up})=>{const delta=up?step:-step;return<button type="button"
+    onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);startHold(idx,delta);}}
+    onPointerUp={stopHold} onPointerCancel={stopHold} onPointerLeave={stopHold}
+    style={{width:36,height:22,border:`1px solid ${T.border}`,borderBottom:up?`1px solid ${T.border}`:"none",borderRadius:up?"4px 4px 0 0":"0 0 4px 4px",background:T.accentGlow,color:T.ice,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,userSelect:"none",WebkitUserSelect:"none",touchAction:"none"}}>
+    <svg width="8" height="5" viewBox="0 0 8 5" fill="none"><path d={up?"M1 4l3-3 3 3":"M1 1l3 3 3-3"} stroke={T.ice} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+  </button>;};
   return<div style={{marginBottom:20}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
       <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",color:T.ice}}>{label}</span>
@@ -259,6 +253,8 @@ const Range=({label,min,max,value:v,onChange,step=.1,fmt=x=>x})=>{
       <span style={{fontSize:9,color:T.textMuted,textTransform:"uppercase",letterSpacing:".05em",marginRight:36}}>max</span>
     </div>
   </div>;};
+
+
 
 // ─── Card ───────────────────────────────────────────────────────────────
 const Card=({d,onFav,isFav,onCmp,isCmp,onSel})=>{const[h,setH]=useState(false);const{T,t,fmtPrice}=useApp();
@@ -291,15 +287,7 @@ const Card=({d,onFav,isFav,onCmp,isCmp,onSel})=>{const[h,setH]=useState(false);c
     <div style={{fontSize:16,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif",marginBottom:2}}>{d.carat} ct {d.shape}</div>
     <div style={{fontSize:12,color:T.textSecondary,marginBottom:12}}>{d.color} · {d.clarity} · {d.cut}</div>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}}>
-      <div>
-        <div style={{fontSize:22,fontWeight:700,color:T.text}}>{fmtPrice(d.price)}</div>
-        <div style={{fontSize:11,color:T.textMuted,marginTop:2}}>
-          <span style={{color:T.textSecondary}}>{fmtPrice(d.pricePerCt)}{t.perCt} · Rap</span>
-          {d.discount!==0
-            ?<span style={{marginLeft:6,color:d.discount<-25?T.success:T.warning,fontWeight:600}}>{d.discount}% от Rap</span>
-            :<span style={{marginLeft:6,color:T.textMuted,fontStyle:"italic"}}>Fancy Color</span>}
-        </div>
-      </div>
+      <div><div style={{fontSize:22,fontWeight:700,color:T.text}}>{fmtPrice(d.price)}</div><div style={{fontSize:11,color:T.textMuted,marginTop:2}}><span style={{color:T.textSecondary}}>{fmtPrice(d.pricePerCt)}{t.perCt}</span>{d.discount!==0?<span style={{marginLeft:6,color:T.danger,fontWeight:600}}>{d.discount}%</span>:<span style={{marginLeft:6,color:T.warning,fontWeight:600}}>+10%</span>}</div></div>
     </div>
   </div></div>;};
 
@@ -310,7 +298,7 @@ const Detail=({d,onClose,onFav,isFav,usr,onNeedAuth})=>{const{T,t,fmtPrice}=useA
   return<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",backdropFilter:"blur(12px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:T.bgModal,borderRadius:24,padding:"28px 32px",maxWidth:640,width:"100%",border:`1px solid ${T.border}`,maxHeight:"90vh",overflowY:"auto"}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}><div><div style={{fontSize:26,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{d.carat} ct {d.shape}</div><div style={{fontSize:13,color:T.textMuted,marginTop:4}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,color:T.ice,background:T.accentGlow,padding:"2px 8px",borderRadius:5,border:`1px solid ${T.border}`,fontSize:12}}>{d.code||d.id}</span><span style={{marginLeft:8,color:T.textMuted}}>{d.lab} #{d.certNumber}</span></div></div><button onClick={onClose} style={{background:T.accentGlow,border:"none",color:T.ice,width:36,height:36,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>{I.x}</button></div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:24,background:T.accentGlow,borderRadius:16,padding:20,border:`1px solid ${T.border}`}}>{sp.map(([l,v])=><div key={l}><div style={{fontSize:9,color:T.textMuted,textTransform:"uppercase",letterSpacing:".12em",marginBottom:2}}>{l}</div><div style={{fontSize:13,color:T.text,fontWeight:600}}>{v}</div></div>)}</div>
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:`linear-gradient(135deg,${T.accentGlow},transparent)`,borderRadius:16,padding:24,marginBottom:20,border:`1px solid ${T.border}`}}><div><div style={{fontSize:10,color:T.textMuted,textTransform:"uppercase",marginBottom:4}}>{t.totalPrice}</div><div style={{fontSize:36,fontWeight:700,color:T.text}}>{fmtPrice(d.price)}</div><div style={{fontSize:13,color:T.textSecondary}}>{fmtPrice(d.pricePerCt)}{t.perCt} · Rap{d.discount!==0&&<span style={{marginLeft:8,color:d.discount<-25?T.success:T.warning,fontWeight:600}}>{d.discount}% от Rap</span>}</div></div><div style={{textAlign:"right"}}><div style={{fontSize:12,color:T.textSecondary}}>{d.dealer}</div><div style={{fontSize:11,color:T.textMuted,marginTop:4}}>{d.city}</div></div></div>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:`linear-gradient(135deg,${T.accentGlow},transparent)`,borderRadius:16,padding:24,marginBottom:20,border:`1px solid ${T.border}`}}><div><div style={{fontSize:10,color:T.textMuted,textTransform:"uppercase",marginBottom:4}}>{t.totalPrice}</div><div style={{fontSize:36,fontWeight:700,color:T.text}}>{fmtPrice(d.price)}</div><div style={{fontSize:13,color:T.textSecondary}}>{fmtPrice(d.pricePerCt)}{t.perCt}{d.discount!==0?<span style={{marginLeft:8,color:T.danger,fontWeight:600}}>{d.discount}%</span>:<span style={{marginLeft:8,color:T.warning,fontWeight:600}}>+10%</span>}</div></div><div style={{textAlign:"right"}}><div style={{fontSize:12,color:T.textSecondary}}>{d.dealer}</div><div style={{fontSize:11,color:T.textMuted,marginTop:4}}>{d.city}</div></div></div>
     <div style={{display:"flex",gap:10}}><Btn primary style={{flex:1,justifyContent:"center",padding:"14px"}}>{t.contactDealer}</Btn>
       <Btn onClick={()=>onFav(d.id)}>{I.heart(isFav)} {isFav?t.saved:t.save}</Btn>
       <Btn onClick={doShare}>{I.ext} {copied?"Copied!":t.share}</Btn>
@@ -402,14 +390,12 @@ export default function DIAMCO(){
   const[rates,setRates]=useState({USD:1,RUB:90,AED:3.67});
   const [,_refresh]=useState(0);
 
-  // Реальный курс валют
   useEffect(()=>{
-    fetch("https://api.frankfurter.app/latest?from=USD&to=RUB,AED")
+    fetch("https://open.er-api.com/v6/latest/USD")
       .then(r=>r.json()).then(d=>{if(d.rates)setRates({USD:1,RUB:d.rates.RUB||90,AED:d.rates.AED||3.67});})
       .catch(()=>{});
   },[]);
 
-  // Автообновление — проверяем новую версию каждые 5 минут
   useEffect(()=>{
     if(!("serviceWorker" in navigator))return;
     const check=()=>navigator.serviceWorker.getRegistrations().then(regs=>regs.forEach(r=>r.update()));
@@ -417,7 +403,6 @@ export default function DIAMCO(){
     return()=>clearInterval(id);
   },[]);
 
-  const SYMS={USD:"$",RUB:"₽",AED:"د.إ"};
   const fmtPrice=(usd)=>{
     if(!usd&&usd!==0)return"—";
     const v=Math.round(usd*rates[cn]);
@@ -518,7 +503,7 @@ export default function DIAMCO(){
     <div style={{position:"absolute",bottom:24,fontSize:11,color:"#c8d5dd",animation:"fadeUp .6s ease-out .5s both"}}>В© 2025 DIAMCO</div>
   </div>;
 
-  return<Ctx.Provider value={{T,t,isRTL,ALL_D,cn,setCn,fmtPrice,SYMS,rates}}>
+  return<Ctx.Provider value={{T,t,isRTL,ALL_D,cn,setCn,fmtPrice}}>
   <div dir={isRTL?"rtl":"ltr"} style={{minHeight:"100vh",background:T.bg,color:T.text,fontFamily:"'Outfit',sans-serif",transition:"background .3s,color .3s"}}>
     <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:${T.scrollThumb};border-radius:3px;}select option{background:${T.bgModal};color:${T.text};}::selection{background:rgba(126,184,216,.3);}input:focus,select:focus{outline:none;border-color:${T.ice}!important;}@media(max-width:768px){.dsk{display:none!important;}.mf{grid-template-columns:1fr!important;}.mp{padding:12px!important;}.calc-grid{grid-template-columns:1fr!important;}.stats-grid{grid-template-columns:1fr 1fr!important;}.edu-grid{grid-template-columns:1fr 1fr!important;}.an-grid{grid-template-columns:1fr!important;}.prof-grid{grid-template-columns:1fr!important;}.foot-grid{grid-template-columns:1fr!important;text-align:center;}}@media(min-width:769px){.mob{display:none!important;}}`}</style>
 
