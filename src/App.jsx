@@ -202,53 +202,54 @@ const I={
 const Tip=({text,children})=>{const[s,setS]=useState(false);const{T}=useApp();return<span style={{position:"relative",display:"inline-flex",alignItems:"center",cursor:"help"}} onMouseEnter={()=>setS(true)} onMouseLeave={()=>setS(false)}>{children}{s&&<span style={{position:"absolute",bottom:"calc(100% + 8px)",left:"50%",transform:"translateX(-50%)",background:T.tooltipBg,color:T.text,padding:"8px 12px",borderRadius:8,fontSize:12,whiteSpace:"nowrap",zIndex:999,boxShadow:`0 8px 32px ${T.shadow}`,border:`1px solid ${T.border}`,backdropFilter:"blur(20px)"}}>{text}</span>}</span>;};
 const Btn=({children,primary,small,danger,style:sx,...p})=>{const{T}=useApp();return<button{...p}style={{padding:small?"6px 12px":"10px 20px",borderRadius:10,cursor:"pointer",fontSize:small?12:13,fontWeight:600,fontFamily:"'Outfit',sans-serif",display:"inline-flex",alignItems:"center",gap:6,transition:"all .2s",background:primary?T.gradient:danger?`${T.danger}18`:"transparent",color:primary?"#fff":danger?T.danger:T.ice,border:primary?"none":`1px solid ${danger?`${T.danger}40`:T.border}`,...sx}}>{children}</button>;};
 const Chips=({label,opts,sel,onChange,tip})=>{const{T}=useApp();return<div style={{marginBottom:14}}><div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}><span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",color:T.ice}}>{label}</span>{tip&&<Tip text={tip}>{I.info}</Tip>}</div><div style={{display:"flex",flexWrap:"wrap",gap:3}}>{opts.map(o=>{const a=sel.includes(o);return<button key={o} onClick={()=>onChange(a?sel.filter(s=>s!==o):[...sel,o])} style={{padding:"4px 9px",borderRadius:6,border:`1px solid ${a?T.ice:T.border}`,background:a?T.chipActive:"transparent",color:a?T.chipText:T.textMuted,fontSize:11,cursor:"pointer",fontWeight:a?600:400,fontFamily:"'Outfit',sans-serif"}}>{o}</button>;})}</div></div>;};
+const RangeField=({val,fmt,onCommit})=>{
+  const{T}=useApp();
+  const[edit,setEdit]=useState(false);
+  const[tmp,setTmp]=useState("");
+  const open=()=>{setTmp(String(val));setEdit(true);};
+  const commit=()=>{const n=parseFloat(tmp);if(!isNaN(n))onCommit(n);setEdit(false);};
+  return<div onClick={open} style={{width:64,height:36,background:T.bgInput,borderLeft:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"text"}}>
+    {edit
+      ?<input autoFocus value={tmp} onChange={e=>setTmp(e.target.value)}
+          onBlur={commit} onKeyDown={e=>e.key==="Enter"&&commit()}
+          style={{width:"100%",background:"transparent",border:"none",color:T.text,fontSize:13,fontWeight:600,textAlign:"center",fontFamily:"'Outfit',sans-serif",padding:"0 4px",outline:"none"}}/>
+      :<span style={{fontSize:13,fontWeight:600,color:T.text,fontFamily:"'Outfit',sans-serif"}}>{fmt(val)}</span>}
+  </div>;};
 const Range=({label,min,max,value:v,onChange,step=.1,fmt=x=>x})=>{
   const{T}=useApp();
   const timerRef=useRef(null);
   const clamp=(val,lo,hi)=>Math.round(Math.min(Math.max(val,lo),hi)*100)/100;
   const stopHold=()=>{clearTimeout(timerRef.current);clearInterval(timerRef.current);};
   const startHold=(idx,delta)=>{
-    const move=()=>onChange(p=>{const nv=[...p];
-      nv[idx]=clamp(nv[idx]+delta,idx===0?min:p[0]+step,idx===1?max:p[1]-step);
-      return nv;});
-    move();
-    timerRef.current=setTimeout(()=>{timerRef.current=setInterval(move,60);},300);
+    const move=()=>onChange(p=>{const nv=[...p];nv[idx]=clamp(nv[idx]+delta,idx===0?min:p[0]+step,idx===1?max:p[1]-step);return nv;});
+    move();timerRef.current=setTimeout(()=>{timerRef.current=setInterval(move,60);},300);
   };
   useEffect(()=>()=>stopHold(),[]);
-  const onBlur=(idx,raw)=>{const n=parseFloat(raw);if(isNaN(n))return;onChange(p=>{const nv=[...p];nv[idx]=clamp(n,idx===0?min:p[0]+step,idx===1?max:p[1]-step);return nv;});};
   const BtnPM=({idx,up})=><button type="button"
     onMouseDown={()=>startHold(idx,up?step:-step)} onMouseUp={stopHold} onMouseLeave={stopHold}
     onTouchStart={e=>{e.preventDefault();startHold(idx,up?step:-step);}} onTouchEnd={stopHold}
-    style={{width:32,height:36,borderRadius:up?"6px 6px 0 0":"0 0 6px 6px",border:`1px solid ${T.border}`,borderBottom:up?`1px solid ${T.border}`:"none",background:T.accentGlow,color:T.ice,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,lineHeight:1,fontSize:16,fontWeight:300,userSelect:"none",WebkitUserSelect:"none"}}>
-    {up?"＋":"－"}
+    style={{width:32,height:18,border:`1px solid ${T.border}`,borderBottom:up?`1px solid ${T.border}`:"none",borderRadius:up?"4px 4px 0 0":"0 0 4px 4px",background:T.accentGlow,color:T.ice,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,userSelect:"none",WebkitUserSelect:"none"}}>
+    <svg width="8" height="5" viewBox="0 0 8 5" fill="none"><path d={up?"M1 4l3-3 3 3":"M1 1l3 3 3-3"} stroke={T.ice} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
   </button>;
-  const Field=({idx})=>{const[edit,setEdit]=useState(false);const[tmp,setTmp]=useState("");
-    return<div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-      <div style={{display:"flex",alignItems:"stretch",borderRadius:6,overflow:"hidden",border:`1px solid ${T.border}`}}>
-        <div style={{display:"flex",flexDirection:"column"}}><BtnPM idx={idx} up={true}/><BtnPM idx={idx} up={false}/></div>
-        <div onClick={()=>{setEdit(true);setTmp(String(v[idx]));}} style={{width:58,background:T.bgInput,display:"flex",alignItems:"center",justifyContent:"center",cursor:"text",borderLeft:`1px solid ${T.border}`}}>
-          {edit
-            ?<input autoFocus value={tmp} onChange={e=>setTmp(e.target.value)}
-                onBlur={()=>{onBlur(idx,tmp);setEdit(false);}}
-                onKeyDown={e=>{if(e.key==="Enter"){onBlur(idx,tmp);setEdit(false);}}}
-                style={{width:"100%",background:"transparent",border:"none",color:T.text,fontSize:13,fontWeight:600,textAlign:"center",fontFamily:"'Outfit',sans-serif",padding:0,outline:"none"}}/>
-            :<span style={{fontSize:13,fontWeight:600,color:T.text,fontFamily:"'Outfit',sans-serif"}}>{fmt(v[idx])}</span>
-          }
-        </div>
-      </div>
-      <span style={{fontSize:9,color:T.textMuted,marginTop:3,textTransform:"uppercase",letterSpacing:".05em"}}>{idx===0?"min":"max"}</span>
-    </div>;};
   return<div style={{marginBottom:20}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
       <span style={{fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",color:T.ice}}>{label}</span>
       <span style={{fontSize:11,color:T.text,fontWeight:600,background:T.accentGlow,padding:"2px 8px",borderRadius:5,border:`1px solid ${T.border}`}}>{fmt(v[0])} — {fmt(v[1])}</span>
     </div>
-    <div style={{display:"flex",alignItems:"flex-start",gap:8,justifyContent:"space-between"}}>
-      <Field idx={0}/>
-      <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",paddingTop:14}}>
-        <div style={{height:2,width:"100%",background:`linear-gradient(90deg,${T.ice}40,${T.ice},${T.ice}40)`,borderRadius:1}}/>
+    <div style={{display:"flex",alignItems:"center",gap:8,justifyContent:"space-between"}}>
+      <div style={{display:"flex",alignItems:"stretch",borderRadius:6,overflow:"hidden",border:`1px solid ${T.border}`}}>
+        <div style={{display:"flex",flexDirection:"column"}}><BtnPM idx={0} up={true}/><BtnPM idx={0} up={false}/></div>
+        <RangeField val={v[0]} fmt={fmt} onCommit={n=>onChange([clamp(n,min,v[1]-step),v[1]])}/>
       </div>
-      <Field idx={1}/>
+      <div style={{flex:1,height:2,background:`linear-gradient(90deg,${T.ice}30,${T.ice}80,${T.ice}30)`,borderRadius:1,margin:"0 4px"}}/>
+      <div style={{display:"flex",alignItems:"stretch",borderRadius:6,overflow:"hidden",border:`1px solid ${T.border}`}}>
+        <RangeField val={v[1]} fmt={fmt} onCommit={n=>onChange([v[0],clamp(n,v[0]+step,max)])}/>
+        <div style={{display:"flex",flexDirection:"column"}}><BtnPM idx={1} up={true}/><BtnPM idx={1} up={false}/></div>
+      </div>
+    </div>
+    <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+      <span style={{fontSize:9,color:T.textMuted,textTransform:"uppercase",letterSpacing:".05em",marginLeft:36}}>min</span>
+      <span style={{fontSize:9,color:T.textMuted,textTransform:"uppercase",letterSpacing:".05em",marginRight:36}}>max</span>
     </div>
   </div>;};
 
@@ -431,7 +432,7 @@ export default function DIAMCO(){
   const safeFav=useCallback(id=>{if(!usr){setAuthMode("login");setShowAuth(true);return;}togFav(id);},[usr,togFav]);
   const togCmp=useCallback(d=>setCmpList(p=>p.find(x=>x.id===d.id)?p.filter(x=>x.id!==d.id):p.length<4?[...p,d]:p),[]);
 
-  const filtered=useMemo(()=>{let r=ALL_D.filter(d=>{if(fSh.length&&!fSh.includes(d.shape))return false;if(fCo.length&&!fCo.includes(d.color))return false;if(fCl.length&&!fCl.includes(d.clarity))return false;if(fCu.length&&!fCu.includes(d.cut))return false;if(fLb.length&&!fLb.includes(d.lab))return false;if(d.carat<fCt[0]||d.carat>fCt[1])return false;if(d.price<fPr[0]||d.price>fPr[1])return false;if(sTxt){const q=sTxt.toLowerCase();return d.id.toLowerCase().includes(q)||(d.code||"").toLowerCase().includes(q)||d.dealer.toLowerCase().includes(q)||d.shape.toLowerCase().includes(q)||(d.city||"").toLowerCase().includes(q)||d.color.toLowerCase().includes(q)||d.clarity.toLowerCase().includes(q)||(d.certNumber||"").toLowerCase().includes(q);}return true;});const[k,dir]=sort.split("-");r.sort((a,b)=>dir==="asc"?a[k]-b[k]:b[k]-a[k]);return r;},[fSh,fCo,fCl,fCu,fLb,fCt,fPr,sort,sTxt]);
+  const filtered=useMemo(()=>{let r=ALL_D.filter(d=>{if(fSh.length&&!fSh.includes(d.shape))return false;if(fCo.length&&!fCo.includes(d.color))return false;if(fCl.length&&!fCl.includes(d.clarity))return false;if(fCu.length&&!fCu.includes(d.cut))return false;if(fLb.length&&!fLb.includes(d.lab))return false;if(d.carat<fCt[0]||d.carat>fCt[1])return false;if(d.price<fPr[0]||d.price>fPr[1])return false;if(sTxt){const q=sTxt.toLowerCase();return d.id.toLowerCase().includes(q)||(d.code||"").toLowerCase().includes(q)||d.dealer.toLowerCase().includes(q)||d.shape.toLowerCase().includes(q)||(d.city||"").toLowerCase().includes(q)||d.color.toLowerCase().includes(q)||d.clarity.toLowerCase().includes(q)||(d.certNumber||"").toLowerCase().includes(q);}return true;});const[k,dir]=sort.split("-");r.sort((a,b)=>dir==="asc"?a[k]-b[k]:b[k]-a[k]);return r;},[ALL_D,fSh,fCo,fCl,fCu,fLb,fCt,fPr,sort,sTxt]);
 
   const saveSrch=()=>{if(!usr){setShowAuth(true);return;}const desc=[fSh.length?fSh.join(","):"",fCt[0]!==.2||fCt[1]!==6?`${fCt[0]}-${fCt[1]}ct`:""].filter(Boolean).join(" В· ")||t.catalog;setUsr(p=>({...p,savedSearches:[...(p.savedSearches||[]),{name:`#${(p.savedSearches?.length||0)+1}`,description:desc,filters:{fSh,fCo,fCl,fCu,fCt,fPr,fLb,fSr},resultCount:filtered.length}]}));};
   const mkAlert=()=>{if(!usr){setShowAuth(true);return;}const desc=[fSh.length?fSh.join(","):""].filter(Boolean).join(" В· ")||t.catalog;setUsr(p=>({...p,alerts:[...(p.alerts||[]),{description:desc,targetPrice:filtered.length?Math.round(filtered.reduce((s,d)=>s+d.price,0)/filtered.length*.9):5000,triggered:Math.random()>.7}]}));};
