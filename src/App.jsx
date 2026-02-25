@@ -283,7 +283,7 @@ return<div onClick={()=>onSel(d)} onMouseEnter={()=>setH(true)} onMouseLeave={()
     <div style={{fontSize:16,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif",marginBottom:2}}>{d.carat} ct {d.shape}</div>
     <div style={{fontSize:12,color:T.textSecondary,marginBottom:12}}>{d.color} · {d.clarity} · {d.cut}</div>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}}>
-      <div><div style={{fontSize:22,fontWeight:700,color:T.text}}>{fmtPrice(d.price)}</div><div style={{fontSize:11,color:T.textMuted,marginTop:2}}><span style={{color:T.textSecondary}}>{fmtPrice(d.pricePerCt)}{t.perCt}</span>{d.discount!==0?<span style={{marginLeft:6,color:T.danger,fontWeight:600}}>{d.discount}%</span>:<span style={{marginLeft:6,color:T.warning,fontWeight:600}}>+10%</span>}</div></div>
+      <div><div style={{fontSize:22,fontWeight:700,color:T.text}}>{fmtPrice(d.price)}</div><div style={{fontSize:11,color:T.textMuted,marginTop:2}}>{d.rapPerCt?<><span style={{color:T.textSecondary}}>${d.rapPerCt.toLocaleString()}{t.perCt}</span><span style={{marginLeft:6,color:T.danger,fontWeight:600}}>−{d.clientDiscPct}%</span></>:<span style={{color:T.textSecondary}}>{fmtPrice(d.pricePerCt)}{t.perCt}</span>}</div></div>
     </div>
   </div></div>;};
 
@@ -294,7 +294,7 @@ const doShare=async()=>{const url=`${window.location.origin}?d=${d.code||d.id}`;
 return<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",backdropFilter:"blur(12px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000,padding:16}} onClick={onClose}><div onClick={e=>e.stopPropagation()} style={{background:T.bgModal,borderRadius:24,padding:"28px 32px",maxWidth:640,width:"100%",border:`1px solid ${T.border}`,maxHeight:"90vh",overflowY:"auto"}}>
 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}><div><div style={{fontSize:26,fontWeight:700,color:T.text,fontFamily:"'Playfair Display',serif"}}>{d.carat} ct {d.shape}</div><div style={{fontSize:13,color:T.textMuted,marginTop:4}}><span style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,color:T.ice,background:T.accentGlow,padding:"2px 8px",borderRadius:5,border:`1px solid ${T.border}`,fontSize:12}}>{d.code||d.id}</span><span style={{marginLeft:8,color:T.textMuted}}>{d.lab} #{d.certNumber}</span></div></div><button onClick={onClose} style={{background:T.accentGlow,border:"none",color:T.ice,width:36,height:36,borderRadius:"50%",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>{I.x}</button></div>
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:24,background:T.accentGlow,borderRadius:16,padding:20,border:`1px solid ${T.border}`}}>{sp.map(([l,v])=><div key={l}><div style={{fontSize:9,color:T.textMuted,textTransform:"uppercase",letterSpacing:".12em",marginBottom:2}}>{l}</div><div style={{fontSize:13,color:T.text,fontWeight:600}}>{v}</div></div>)}</div>
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:`linear-gradient(135deg,${T.accentGlow},transparent)`,borderRadius:16,padding:24,marginBottom:20,border:`1px solid ${T.border}`}}><div><div style={{fontSize:10,color:T.textMuted,textTransform:"uppercase",marginBottom:4}}>{t.totalPrice}</div><div style={{fontSize:36,fontWeight:700,color:T.text}}>{fmtPrice(d.price)}</div><div style={{fontSize:13,color:T.textSecondary}}>{fmtPrice(d.pricePerCt)}{t.perCt}{d.discount!==0?<span style={{marginLeft:8,color:T.danger,fontWeight:600}}>{d.discount}%</span>:<span style={{marginLeft:8,color:T.warning,fontWeight:600}}>+10%</span>}</div></div><div style={{textAlign:"right"}}><div style={{fontSize:12,color:T.textSecondary}}>{d.dealer}</div><div style={{fontSize:11,color:T.textMuted,marginTop:4}}>{d.city}</div></div></div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:`linear-gradient(135deg,${T.accentGlow},transparent)`,borderRadius:16,padding:24,marginBottom:20,border:`1px solid ${T.border}`}}><div><div style={{fontSize:10,color:T.textMuted,textTransform:"uppercase",marginBottom:4}}>{t.totalPrice}</div><div style={{fontSize:36,fontWeight:700,color:T.text}}>{fmtPrice(d.price)}</div><div style={{fontSize:13,color:T.textSecondary}}>{d.rapPerCt?<><span>${d.rapPerCt.toLocaleString()}{t.perCt}</span><span style={{marginLeft:8,color:T.danger,fontWeight:600}}>−{d.clientDiscPct}%</span></>:<span>{fmtPrice(d.pricePerCt)}{t.perCt}</span>}</div></div><div style={{textAlign:"right"}}><div style={{fontSize:12,color:T.textSecondary}}>{d.dealer}</div><div style={{fontSize:11,color:T.textMuted,marginTop:4}}>{d.city}</div></div></div>
 <div style={{display:"flex",gap:10}}><Btn primary style={{flex:1,justifyContent:"center",padding:"14px"}}>{t.contactDealer}</Btn>
 <Btn onClick={()=>onFav(d.id)}>{I.heart(isFav)} {isFav?t.saved:t.save}</Btn>
 <Btn onClick={doShare}>{I.ext} {copied?"Copied!":t.share}</Btn>
@@ -407,22 +407,27 @@ return`$${v.toLocaleString()}`;
 };
 
 useEffect(()=>{
-const calcClientPrice=(d)=>{
-if(d.rap_price&&d.disc_pct!=null){
+const calcClientData=(d)=>{
+const color=(d.color||"").toLowerCase();
+const isFancy=color.includes("fancy")||color==="fy";
+if(!isFancy&&d.rap_price&&d.disc_pct!=null){
 const rapTotal=d.rap_price*d.carat;
 const discAbs=Math.abs(d.disc_pct);
 const margin=d.carat<=2?0.07:d.carat<=6?0.05:0.03;
 const clientDisc=Math.max(0,discAbs-margin);
-return Math.round(rapTotal*(1-clientDisc));
+const pc=Math.round(rapTotal*(1-clientDisc));
+return{pc,rapPerCt:d.rap_price,clientDiscPct:+((clientDisc*100).toFixed(1)),isFancy:false};
 }
-return d.price_client||Math.round((d.price||0)*1.30);
+const pc=d.price_client||Math.round((d.price||0)*1.30);
+return{pc,rapPerCt:null,clientDiscPct:null,isFancy};
 };
 supabase.from("diamonds").select("*").eq("available",true).then(({data})=>{
 if(data)setALL_D(data.map(d=>{
-const pc=calcClientPrice(d);
+const{pc,rapPerCt,clientDiscPct,isFancy}=calcClientData(d);
 return{...d,
 price:pc,
 pricePerCt:pc&&d.carat?Math.round(pc/d.carat):0,
+rapPerCt,clientDiscPct,isFancy,
 discount:d.disc_pct!=null?+(d.disc_pct*100).toFixed(1):0,
 lastPriceChange:0,dealer:"DIAMCO",natural:true,
 daysListed:0,source:"DIAMCO",city:d.city||"Dubai",
