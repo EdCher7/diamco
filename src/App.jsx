@@ -227,8 +227,8 @@ const Range=({label,min,max,value:v,onChange,step=.1,fmt=x=>x})=>{
   useEffect(()=>()=>stopHold(),[]);
   const BtnPM=({idx,up})=><button type="button"
     onMouseDown={()=>startHold(idx,up?step:-step)} onMouseUp={stopHold} onMouseLeave={stopHold}
-    onTouchStart={e=>{e.preventDefault();startHold(idx,up?step:-step);}} onTouchEnd={stopHold}
-    style={{width:32,height:18,border:`1px solid ${T.border}`,borderBottom:up?`1px solid ${T.border}`:"none",borderRadius:up?"4px 4px 0 0":"0 0 4px 4px",background:T.accentGlow,color:T.ice,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,userSelect:"none",WebkitUserSelect:"none"}}>
+    onTouchStart={e=>{e.preventDefault();e.stopPropagation();startHold(idx,up?step:-step);}} onTouchEnd={e=>{e.preventDefault();stopHold();}} onTouchCancel={stopHold}
+    style={{width:32,height:18,border:`1px solid ${T.border}`,borderBottom:up?`1px solid ${T.border}`:"none",borderRadius:up?"4px 4px 0 0":"0 0 4px 4px",background:T.accentGlow,color:T.ice,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0,userSelect:"none",WebkitUserSelect:"none",touchAction:"none"}}>
     <svg width="8" height="5" viewBox="0 0 8 5" fill="none"><path d={up?"M1 4l3-3 3 3":"M1 1l3 3 3-3"} stroke={T.ice} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
   </button>;
   return<div style={{marginBottom:20}}>
@@ -452,9 +452,9 @@ export default function DIAMCO(){
   const enterWithAuth=(mode)=>{setAuthMode(mode);setShowAuth(true);setWelcomeFade(true);setTimeout(()=>setWelcome(false),500);};
 
   // ─── Splash Screen ───
-  if(splash)return<div onClick={enterWelcome} style={{position:"fixed",inset:0,background:"#fff",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",cursor:"pointer",zIndex:9999,opacity:splashFade?0:1,transition:"opacity .5s ease-out",fontFamily:"'Outfit',sans-serif"}}>
+  if(splash)return<div style={{position:"fixed",inset:0,background:"#fff",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:9999,opacity:splashFade?0:1,transition:"opacity .5s ease-out",fontFamily:"'Outfit',sans-serif"}}>
     <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}`}</style>
-    <img src="/logo.png" alt="DIAMCO" style={{width:280,maxWidth:"60vw",animation:"pulse 3s ease-in-out infinite"}}/>
+    <button onClick={enterWelcome} style={{background:"none",border:"none",padding:0,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",width:"100%",height:"100%"}}><img src="/logo.png" alt="DIAMCO" style={{width:280,maxWidth:"60vw",animation:"pulse 3s ease-in-out infinite"}}/></button>
   </div>;
 
   // ─── Welcome Screen (Auth choices) ───
